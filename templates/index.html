@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Ahab GUI{% endblock %}
+
+{% block content %}
+<!-- Status Section -->
+<section class="status-section" id="status-section">
+    <div class="card">
+        <h2>System Status</h2>
+        <div id="system-status" class="system-status">
+            <div class="status-item">
+                <span class="status-label">Workstation:</span>
+                <span id="workstation-status" class="status-badge status-unknown">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Services:</span>
+                <span id="services-count" class="status-text">0 deployed</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Actions Section -->
+<section class="actions-section" id="actions-section">
+    <!-- Install Section (shown when workstation not installed) -->
+    <div class="card action-card" id="install-card" style="display: none;">
+        <h2>Get Started</h2>
+        <p class="card-description">
+            Install the Ahab workstation to begin deploying services.
+            This creates a virtual machine with all necessary tools.
+        </p>
+        <button class="btn btn-primary btn-large" onclick="app.executeCommand('install')">
+            <span class="btn-icon">🚀</span>
+            Install Workstation
+        </button>
+    </div>
+
+    <!-- Services Section (shown when workstation is ready) -->
+    <div class="card" id="services-card" style="display: none;">
+        <h2>Available Services</h2>
+        <p class="card-description">
+            Deploy services to your workstation with a single click.
+        </p>
+        <div class="services-grid" id="services-grid">
+            <!-- Service cards will be inserted here -->
+            <div class="service-card">
+                <h3>Apache</h3>
+                <p>Web server for hosting websites and applications</p>
+                <button class="btn btn-secondary" onclick="app.deployService('apache')">
+                    Deploy Apache
+                </button>
+            </div>
+            <div class="service-card">
+                <h3>MySQL</h3>
+                <p>Database server for storing application data</p>
+                <button class="btn btn-secondary" onclick="app.deployService('mysql')">
+                    Deploy MySQL
+                </button>
+            </div>
+            <div class="service-card">
+                <h3>PHP</h3>
+                <p>Programming language runtime for web applications</p>
+                <button class="btn btn-secondary" onclick="app.deployService('php')">
+                    Deploy PHP
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Section (shown when workstation is running) -->
+    <div class="card" id="management-card" style="display: none;">
+        <h2>Management</h2>
+        <div class="button-group">
+            <button class="btn btn-secondary" onclick="app.executeCommand('verify-install')">
+                <span class="btn-icon">✓</span>
+                Verify Installation
+            </button>
+            <button class="btn btn-secondary" onclick="app.executeCommand('test')">
+                <span class="btn-icon">🧪</span>
+                Run Tests
+            </button>
+            <button class="btn btn-danger" onclick="app.executeCommand('clean')">
+                <span class="btn-icon">🗑️</span>
+                Clean Up
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Command Output Section -->
+<section class="output-section" id="output-section" style="display: none;">
+    <div class="card">
+        <div class="output-header">
+            <h2>Command Output</h2>
+            <button class="btn btn-small btn-secondary" onclick="app.clearOutput()">Clear</button>
+        </div>
+        <div class="terminal" id="terminal">
+            <div id="terminal-output"></div>
+        </div>
+        <div class="output-footer" id="output-footer" style="display: none;">
+            <span id="command-status" class="status-text"></span>
+            <span id="command-duration" class="status-text"></span>
+        </div>
+    </div>
+</section>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Executing command...</p>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize the app when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        app.init();
+    });
+</script>
+{% endblock %}

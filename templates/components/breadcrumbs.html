@@ -1,0 +1,36 @@
+{#
+Breadcrumbs Component
+
+Displays breadcrumb navigation trail with ARIA support.
+Validates: Requirements 4.3 (Breadcrumb navigation)
+
+Usage:
+    {% set breadcrumbs = [
+        {'label': 'Home', 'url': '/', 'is_current': False},
+        {'label': 'Services', 'url': '/services', 'is_current': False},
+        {'label': 'Apache', 'url': '/services/apache', 'is_current': True}
+    ] %}
+    {% include 'components/breadcrumbs.html' %}
+
+Parameters:
+    breadcrumbs (list): List of breadcrumb dicts with 'label', 'url', 'is_current'
+#}
+
+{% if breadcrumbs and breadcrumbs|length > 0 %}
+<nav id="breadcrumbs" aria-label="Breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumbs">
+        {% for crumb in breadcrumbs %}
+        <li class="breadcrumb-item{% if crumb.is_current %} current{% endif %}">
+            {% if crumb.is_current %}
+                <span aria-current="page">{{ crumb.label }}</span>
+            {% else %}
+                <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+            {% endif %}
+            {% if not loop.last %}
+                <span class="breadcrumb-separator" aria-hidden="true">&gt;</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+{% endif %}

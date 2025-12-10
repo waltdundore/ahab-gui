@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Services - Ahab GUI{% endblock %}
+
+{% block content %}
+{# Page Header with Breadcrumbs #}
+{% set breadcrumbs = [
+    {'label': 'Home', 'url': '/', 'is_current': False},
+    {'label': 'Services', 'url': '/services', 'is_current': True}
+] %}
+{% include 'components/page-header.html' with context %}
+
+<main id="main-content" class="main-content">
+    <div class="container">
+        {# Content Section: Overview #}
+        {% set section = {
+            'heading': 'Service Management',
+            'level': 2,
+            'content': '<p>Deploy and manage services on your Ahab workstation. Each service runs in an isolated Docker container for security and portability.</p>',
+            'collapsible': False
+        } %}
+        {% set section_id = 'service-overview' %}
+        {% include 'components/content-section.html' %}
+        
+        {# Service Cards Grid #}
+        <div class="cards-grid">
+            {# Apache Service Card #}
+            {% set card_title = 'Apache Web Server' %}
+            {% set card_description = 'Deploy Apache HTTP Server for hosting websites and web applications.' %}
+            {% set card_icon = 'server' %}
+            {% set benefits = [
+                'Industry-standard web server',
+                'Automatic configuration',
+                'Ready in 2-3 minutes'
+            ] %}
+            {% set action_label = 'Install Apache' %}
+            {% set action_url = '/services/apache/install' %}
+            {% set action_aria_label = 'Install Apache web server' %}
+            {% set status = {'text': 'Not Installed', 'type': 'default'} if not apache_installed else {'text': 'Running', 'type': 'success'} %}
+            {% set secondary_actions = [
+                {'label': 'Configure', 'url': '/services/apache/configure', 'icon': 'settings', 'disabled': not apache_installed},
+                {'label': 'View Logs', 'url': '/services/apache/logs', 'icon': 'file-text', 'disabled': not apache_installed}
+            ] if apache_installed else [] %}
+            {% set help_link = '/help/services/apache' %}
+            {% set help_link_text = 'Apache documentation' %}
+            {% include 'components/action-card.html' %}
+            
+            {# MySQL Service Card #}
+            {% set card_title = 'MySQL Database' %}
+            {% set card_description = 'Deploy MySQL database server for data storage and management.' %}
+            {% set card_icon = 'database' %}
+            {% set benefits = [
+                'Reliable relational database',
+                'Automatic setup',
+                'Ready in 2-3 minutes'
+            ] %}
+            {% set action_label = 'Install MySQL' %}
+            {% set action_url = '/services/mysql/install' %}
+            {% set action_aria_label = 'Install MySQL database server' %}
+            {% set status = {'text': 'Not Installed', 'type': 'default'} if not mysql_installed else {'text': 'Running', 'type': 'success'} %}
+            {% set secondary_actions = [
+                {'label': 'Configure', 'url': '/services/mysql/configure', 'icon': 'settings', 'disabled': not mysql_installed},
+                {'label': 'View Logs', 'url': '/services/mysql/logs', 'icon': 'file-text', 'disabled': not mysql_installed}
+            ] if mysql_installed else [] %}
+            {% set help_link = '/help/services/mysql' %}
+            {% set help_link_text = 'MySQL documentation' %}
+            {% include 'components/action-card.html' %}
+            
+            {# PHP Service Card #}
+            {% set card_title = 'PHP Runtime' %}
+            {% set card_description = 'Deploy PHP runtime for dynamic web applications and server-side scripting.' %}
+            {% set card_icon = 'code' %}
+            {% set benefits = [
+                'Latest PHP version',
+                'Integrated with Apache',
+                'Ready in 1-2 minutes'
+            ] %}
+            {% set action_label = 'Install PHP' %}
+            {% set action_url = '/services/php/install' %}
+            {% set action_aria_label = 'Install PHP runtime' %}
+            {% set status = {'text': 'Not Installed', 'type': 'default'} if not php_installed else {'text': 'Running', 'type': 'success'} %}
+            {% set secondary_actions = [
+                {'label': 'Configure', 'url': '/services/php/configure', 'icon': 'settings', 'disabled': not php_installed},
+                {'label': 'View Info', 'url': '/services/php/info', 'icon': 'info', 'disabled': not php_installed}
+            ] if php_installed else [] %}
+            {% set help_link = '/help/services/php' %}
+            {% set help_link_text = 'PHP documentation' %}
+            {% include 'components/action-card.html' %}
+        </div>
+        
+        {# Content Section: Installed Services #}
+        {% if apache_installed or mysql_installed or php_installed %}
+        {% set section = {
+            'heading': 'Installed Services',
+            'level': 2,
+            'content': '<p>Manage your installed services. You can stop, restart, or remove services as needed.</p>',
+            'collapsible': False
+        } %}
+        {% set section_id = 'installed-services' %}
+        {% include 'components/content-section.html' %}
+        
+        <div class="installed-services">
+            {% if apache_installed %}
+            <div class="service-status-container">
+                {% set status_title = "Apache Web Server" %}
+                {% set status_value = "Running" %}
+                {% set status_type = "success" %}
+                {% set description = "HTTP server for web applications" %}
+                {% set refresh_url = "/api/services/apache/status" %}
+                {% set last_updated = moment() %}
+                {% set actions = [
+                    {
+                        'label': 'Restart',
+                        'onclick': 'restartService("apache")',
+                        'style': 'secondary',
+                        'aria_label': 'Restart Apache web server'
+                    },
+                    {
+                        'label': 'Remove',
+                        'onclick': 'showDialog("remove-apache-dialog")',
+                        'style': 'danger',
+                        'aria_label': 'Remove Apache web server'
+                    }
+                ] %}
+                {% include 'components/status-display.html' %}
+            </div>
+            {% endif %}
+            
+            {% if mysql_installed %}
+            <div class="service-status-container">
+                {% set status_title = "MySQL Database" %}
+                {% set status_value = "Running" %}
+                {% set status_type = "success" %}
+                {% set description = "Relational database server" %}
+                {% set refresh_url = "/api/services/mysql/status" %}
+                {% set last_updated = moment() %}
+                {% set actions = [
+                    {
+                        'label': 'Restart',
+                        'onclick': 'restartService("mysql")',
+                        'style': 'secondary',
+                        'aria_label': 'Restart MySQL database server'
+                    },
+                    {
+                        'label': 'Remove',
+                        'onclick': 'showDialog("remove-mysql-dialog")',
+                        'style': 'danger',
+                        'aria_label': 'Remove MySQL database server'
+                    }
+                ] %}
+                {% include 'components/status-display.html' %}
+            </div>
+            {% endif %}
+            
+            {% if php_installed %}
+            <div class="service-status-container">
+                {% set status_title = "PHP Runtime" %}
+                {% set status_value = "Running" %}
+                {% set status_type = "success" %}
+                {% set description = "Server-side scripting language" %}
+                {% set refresh_url = "/api/services/php/status" %}
+                {% set last_updated = moment() %}
+                {% set actions = [
+                    {
+                        'label': 'Restart',
+                        'onclick': 'restartService("php")',
+                        'style': 'secondary',
+                        'aria_label': 'Restart PHP runtime'
+                    },
+                    {
+                        'label': 'Remove',
+                        'onclick': 'showDialog("remove-php-dialog")',
+                        'style': 'danger',
+                        'aria_label': 'Remove PHP runtime'
+                    }
+                ] %}
+                {% include 'components/status-display.html' %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</main>
+
+{# Confirmation Dialogs for Destructive Actions #}
+{% if apache_installed %}
+{% set dialog_id = 'remove-apache-dialog' %}
+{% set dialog_title = 'Remove Apache Web Server?' %}
+{% set dialog_message = 'This will permanently remove Apache from your workstation.' %}
+{% set consequences = [
+    'All Apache configuration will be deleted',
+    'Hosted websites will become unavailable',
+    'You can reinstall Apache later if needed'
+] %}
+{% set confirm_label = 'Remove Apache' %}
+{% set confirm_action = '/services/apache/remove' %}
+{% set dialog_type = 'danger' %}
+{% include 'components/confirmation-dialog.html' %}
+{% endif %}
+
+{% if mysql_installed %}
+{% set dialog_id = 'remove-mysql-dialog' %}
+{% set dialog_title = 'Remove MySQL Database?' %}
+{% set dialog_message = 'This will permanently remove MySQL and all databases from your workstation.' %}
+{% set consequences = [
+    'All databases will be deleted',
+    'All MySQL configuration will be removed',
+    'Applications using MySQL will stop working',
+    'You can reinstall MySQL later if needed'
+] %}
+{% set confirm_label = 'Remove MySQL' %}
+{% set confirm_action = '/services/mysql/remove' %}
+{% set dialog_type = 'danger' %}
+{% set show_checkbox = True %}
+{% set checkbox_label = 'I understand all databases will be permanently deleted' %}
+{% include 'components/confirmation-dialog.html' %}
+{% endif %}
+
+{% if php_installed %}
+{% set dialog_id = 'remove-php-dialog' %}
+{% set dialog_title = 'Remove PHP Runtime?' %}
+{% set dialog_message = 'This will remove PHP from your workstation.' %}
+{% set consequences = [
+    'PHP applications will stop working',
+    'PHP configuration will be deleted',
+    'You can reinstall PHP later if needed'
+] %}
+{% set confirm_label = 'Remove PHP' %}
+{% set confirm_action = '/services/php/remove' %}
+{% set dialog_type = 'danger' %}
+{% include 'components/confirmation-dialog.html' %}
+{% endif %}
+
+{# Loading State for Operations #}
+{% set loading_message = 'Installing service...' %}
+{% set show_progress = True %}
+{% set estimated_time = 180 %}
+{% include 'components/loading-state.html' %}
+
+<style>
+/* Service Status Cards */
+.installed-services {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md, 1rem);
+    margin-top: var(--space-lg, 1.5rem);
+}
+
+.service-status-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg, 1.5rem);
+    background: white;
+    border: 1px solid var(--gray-300, #dee2e6);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.service-status-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md, 1rem);
+}
+
+.service-status-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--ahab-navy, #003d7a);
+}
+
+.service-status-actions {
+    display: flex;
+    gap: var(--space-sm, 0.5rem);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .service-status-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md, 1rem);
+    }
+    
+    .service-status-actions {
+        width: 100%;
+    }
+    
+    .service-status-actions .btn {
+        flex: 1;
+    }
+}
+</style>
+
+<script>
+// Service management functions
+function restartService(serviceName) {
+    // Show loading state
+    const loadingState = document.getElementById('loading-state');
+    const loadingMessage = loadingState.querySelector('.loading-message');
+    loadingMessage.textContent = `Restarting ${serviceName}...`;
+    loadingState.style.display = 'flex';
+    
+    // Simulate restart operation
+    fetch(`/services/${serviceName}/restart`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide loading state
+        loadingState.style.display = 'none';
+        
+        // Show success notification
+        showNotification(`${serviceName} restarted successfully`, 'success');
+        
+        // Reload page to update status
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    })
+    .catch(error => {
+        // Hide loading state
+        loadingState.style.display = 'none';
+        
+        // Show error notification
+        showNotification(`Failed to restart ${serviceName}: ${error.message}`, 'error');
+    });
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.setAttribute('role', 'alert');
+    notification.setAttribute('aria-live', 'assertive');
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+// Handle service installation with loading state
+document.addEventListener('DOMContentLoaded', function() {
+    const installLinks = document.querySelectorAll('a[href*="/install"]');
+    
+    installLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const serviceName = this.href.split('/')[4]; // Extract service name from URL
+            const loadingState = document.getElementById('loading-state');
+            const loadingMessage = loadingState.querySelector('.loading-message');
+            const progressFill = document.getElementById('progress-fill');
+            const estimatedTime = document.getElementById('estimated-time');
+            
+            // Show loading state
+            loadingMessage.textContent = `Installing ${serviceName}...`;
+            loadingState.style.display = 'flex';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progressFill) {
+                    progressFill.style.width = progress + '%';
+                    progressFill.setAttribute('aria-valuenow', progress);
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 1000);
+            
+            // Update estimated time
+            if (estimatedTime) {
+                let timeLeft = 180;
+                const timeInterval = setInterval(() => {
+                    timeLeft -= 1;
+                    estimatedTime.textContent = timeLeft + ' seconds';
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timeInterval);
+                    }
+                }, 1000);
+            }
+            
+            // Perform actual installation
+            fetch(this.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading state
+                loadingState.style.display = 'none';
+                
+                // Show success notification
+                showNotification(`${serviceName} installed successfully`, 'success');
+                
+                // Reload page to update status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            })
+            .catch(error => {
+                // Hide loading state
+                loadingState.style.display = 'none';
+                
+                // Show error notification
+                showNotification(`Failed to install ${serviceName}: ${error.message}`, 'error');
+            });
+        });
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Bad Request - Ahab GUI{% endblock %}
+
+{% block content %}
+{# 400 Error Page - Plain Language (WEB 2.4) #}
+
+{% set error_title = error_title | default("Invalid Request") %}
+{% set error_message = error_message | default("The request you sent was not valid. This might be due to incorrect data or a malformed URL.") %}
+{% set error_code = error_code | default("BAD_REQUEST") %}
+{% set recovery_actions = recovery_actions | default([
+  "Check the URL for errors",
+  "Go back and try again",
+  "Return to the dashboard",
+  "Contact support if you need help"
+]) %}
+
+{% include 'components/error-message.html' %}
+
+{% endblock %}

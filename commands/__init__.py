@@ -1,1 +1,1 @@
-"""Command execution module for Ahab GUI."""
+"""Commands package for Ahab GUI."""

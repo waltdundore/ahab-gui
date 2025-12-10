@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Ahab GUI{% endblock %}
+
+{% block content %}
+{# 404 Error Page - Plain Language (WEB 2.4) #}
+
+{% set error_title = "Page Not Found" %}
+{% set error_message = "We couldn't find the page you're looking for. It might have been moved, deleted, or the link might be incorrect." %}
+{% set recovery_actions = [
+  "Check the URL for typos",
+  "Use the navigation menu to find what you need",
+  "Go back to the dashboard and start over",
+  "Search our help documentation"
+] %}
+
+{% include 'components/error-message.html' %}
+
+{% endblock %}

@@ -1,0 +1,122 @@
+{#
+  Loading State Component
+  
+  Provides clear feedback during operations.
+  
+  Validates:
+  - Requirements 9.1 (Loading indicators)
+  - Requirements 9.2 (Progress feedback)
+  - Requirements 9.3 (Skeleton screens)
+  
+  Usage:
+    {% include 'components/loading-state.html' with context %}
+  
+  Optional context:
+    - loading_message: str - Message to display
+    - show_progress: bool - Show progress bar
+    - estimated_time: int - Estimated time in seconds
+#}
+
+{% set loading_message = loading_message | default('Loading...') %}
+{% set show_progress = show_progress | default(False) %}
+
+<div id="loading-state" class="loading-state" style="display: none;" role="status" aria-live="polite">
+  <div class="loading-content">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <p class="loading-message">{{ loading_message }}</p>
+    
+    {% if show_progress %}
+    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    {% endif %}
+    
+    {% if estimated_time %}
+    <p class="loading-time">
+      <span class="sr-only">Estimated time:</span>
+      <time id="estimated-time">{{ estimated_time }} seconds</time>
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+/* Loading State Styles */
+.loading-state {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  text-align: center;
+  max-width: 400px;
+  padding: var(--space-xl, 2rem);
+}
+
+.loading-spinner {
+  width: 4rem;
+  height: 4rem;
+  border: 4px solid var(--gray-300, #dee2e6);
+  border-top-color: var(--ahab-blue, #0066cc);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto var(--space-lg, 1.5rem);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-message {
+  margin: 0 0 var(--space-md, 1rem) 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ahab-navy, #003d7a);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--gray-300, #dee2e6);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--space-md, 1rem);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--ahab-blue, #0066cc);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.loading-time {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gray-600, #6c757d);
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+</style>
+
+</content>

@@ -1,0 +1,68 @@
+{#
+Navigation Component
+
+Main navigation menu with context awareness and progressive disclosure.
+Validates: Requirements 4.1, 4.2 (Navigation consistency, current page indication)
+
+Usage:
+    {% set nav_items = [
+        {'label': 'Home', 'url': '/', 'is_current': True, 'is_available': True, 'icon': 'home'},
+        {'label': 'Workstation', 'url': '/workstation', 'is_current': False, 'is_available': True, 'icon': 'server'},
+        {'label': 'Services', 'url': '/services', 'is_current': False, 'is_available': True, 'icon': 'grid'}
+    ] %}
+    {% include 'components/navigation.html' %}
+
+Parameters:
+    nav_items (list): List of navigation item dicts with:
+        - label (str): Display text
+        - url (str): Link URL
+        - is_current (bool): Whether this is the current page
+        - is_available (bool): Whether this item should be shown (progressive disclosure)
+        - icon (str, optional): Icon name
+        - badge (str, optional): Badge text (e.g., notification count)
+        - children (list, optional): Nested navigation items
+#}
+
+<nav id="main-nav" class="main-nav" role="navigation" aria-label="Main">
+    <ul class="nav-list">
+        {% for item in nav_items %}
+            {% if item.is_available %}
+            <li class="nav-item{% if item.is_current %} current{% endif %}">
+                <a href="{{ item.url }}" 
+                   class="nav-link{% if item.is_current %} active{% endif %}"
+                   {% if item.is_current %}aria-current="page"{% endif %}
+                   {% if item.icon %}data-icon="{{ item.icon }}"{% endif %}>
+                    {% if item.icon %}
+                    <span class="nav-icon" aria-hidden="true">
+                        {# Icon would be rendered here via CSS or icon font #}
+                    </span>
+                    {% endif %}
+                    <span class="nav-label">{{ item.label }}</span>
+                    {% if item.badge %}
+                    <span class="nav-badge" aria-label="{{ item.badge }} notifications">
+                        {{ item.badge }}
+                    </span>
+                    {% endif %}
+                </a>
+                
+                {# Nested navigation (if children exist) #}
+                {% if item.children and item.children|length > 0 %}
+                <ul class="nav-submenu">
+                    {% for child in item.children %}
+                        {% if child.is_available %}
+                        <li class="nav-subitem{% if child.is_current %} current{% endif %}">
+                            <a href="{{ child.url }}" 
+                               class="nav-sublink{% if child.is_current %} active{% endif %}"
+                               {% if child.is_current %}aria-current="page"{% endif %}>
+                                {{ child.label }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>

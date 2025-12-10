@@ -1,0 +1,635 @@
+{#
+  Confirmation Dialog Component
+  
+  Modal dialog for confirming destructive actions.
+  Prevents errors by requiring explicit confirmation.
+  
+  Validates:
+  - Requirements 3.1 (Keyboard navigation)
+  - Requirements 12.1 (Destructive action confirmation)
+  - Requirements 12.2 (Confirmation consequence explanation)
+  - Requirements 2.4 (Plain language error messages)
+  - Requirements 6.5 (Action verbs in instructions)
+  - Requirements 8.5 (Touch target size)
+  - Requirements 11.3 (Button type styling)
+  
+  Usage:
+    {% include 'components/confirmation-dialog.html' with context %}
+  
+  Required context:
+    - dialog_id: str - Unique ID for dialog
+    - dialog_title: str - Dialog heading
+    - dialog_message: str - Plain language explanation
+    - confirm_label: str - Confirmation button label (action verb)
+    - confirm_action: str - URL or JavaScript action
+    
+  Optional context:
+    - consequences: List[str] - What will happen if confirmed
+    - cancel_label: str - Cancel button label (default: "Cancel")
+    - dialog_type: str - 'danger', 'warning', 'info' (default: 'danger')
+    - show_checkbox: bool - Require checkbox confirmation for extra safety
+    - checkbox_label: str - Label for confirmation checkbox
+#}
+
+{% set dialog_type = dialog_type | default('danger') %}
+{% set cancel_label = cancel_label | default('Cancel') %}
+{% set dialog_classes = ['confirmation-dialog', 'dialog-' ~ dialog_type] %}
+
+{# Dialog Backdrop #}
+<div id="{{ dialog_id }}-backdrop" 
+     class="dialog-backdrop" 
+     aria-hidden="true"
+     data-dialog="{{ dialog_id }}">
+</div>
+
+{# Dialog Modal #}
+<div id="{{ dialog_id }}" 
+     class="{{ dialog_classes | join(' ') }}" 
+     role="dialog" 
+     aria-labelledby="{{ dialog_id }}-title"
+     aria-describedby="{{ dialog_id }}-description"
+     aria-modal="true"
+     hidden>
+  
+  <div class="dialog-container">
+    {# Dialog Header #}
+    <div class="dialog-header">
+      {# Icon based on type #}
+      <div class="dialog-icon dialog-icon-{{ dialog_type }}" aria-hidden="true">
+        {% if dialog_type == 'danger' %}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {% elif dialog_type == 'warning' %}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {% else %}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        {% endif %}
+      </div>
+      
+      <h2 id="{{ dialog_id }}-title" class="dialog-title">
+        {{ dialog_title }}
+      </h2>
+      
+      {# Close button (keyboard accessible) #}
+      <button type="button" 
+              class="dialog-close" 
+              aria-label="Close dialog"
+              data-dismiss="{{ dialog_id }}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    
+    {# Dialog Body #}
+    <div class="dialog-body">
+      {# Main message (WEB 2.4, 12.2) #}
+      <p id="{{ dialog_id }}-description" class="dialog-message">
+        {{ dialog_message }}
+      </p>
+      
+      {# Consequences list (WEB 12.2) #}
+      {% if consequences and consequences | length > 0 %}
+      <div class="dialog-consequences">
+        <p class="consequences-heading">This will:</p>
+        <ul class="consequences-list">
+          {% for consequence in consequences %}
+          <li class="consequence-item">{{ consequence }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      
+      {# Optional confirmation checkbox for extra safety #}
+      {% if show_checkbox %}
+      <div class="dialog-checkbox">
+        <label class="checkbox-label">
+          <input type="checkbox" 
+                 id="{{ dialog_id }}-confirm-checkbox"
+                 class="confirm-checkbox"
+                 required>
+          <span class="checkbox-text">
+            {{ checkbox_label | default('I understand the consequences') }}
+          </span>
+        </label>
+      </div>
+      {% endif %}
+    </div>
+    
+    {# Dialog Actions (WEB 8.5, 11.3) #}
+    <div class="dialog-actions">
+      {# Cancel button (secondary) #}
+      <button type="button" 
+              class="btn btn-secondary dialog-btn-cancel"
+              data-dismiss="{{ dialog_id }}"
+              aria-label="{{ cancel_label }}">
+        {{ cancel_label }}
+      </button>
+      
+      {# Confirm button (danger/warning/primary based on type) #}
+      <button type="button" 
+              class="btn btn-{{ dialog_type }} dialog-btn-confirm"
+              data-confirm="{{ dialog_id }}"
+              data-action="{{ confirm_action }}"
+              {% if show_checkbox %}
+              data-requires-checkbox="{{ dialog_id }}-confirm-checkbox"
+              disabled
+              {% endif %}
+              aria-label="{{ confirm_label }}">
+        {{ confirm_label }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Dialog Backdrop */
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-index-modal-backdrop, 1040);
+  opacity: 0;
+  transition: opacity var(--duration-base, 200ms) var(--ease-out);
+  pointer-events: none;
+}
+
+.dialog-backdrop[aria-hidden="false"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Dialog Container */
+.confirmation-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  max-width: 500px;
+  width: calc(100% - 2rem);
+  max-height: calc(100vh - 2rem);
+  background: white;
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-index-modal, 1050);
+  opacity: 0;
+  transition: all var(--duration-base, 200ms) var(--ease-out);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confirmation-dialog:not([hidden]) {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem);
+}
+
+/* Dialog Header */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4, 1rem);
+  padding: var(--space-6, 1.5rem);
+  border-bottom: 1px solid var(--gray-200, #dee2e6);
+}
+
+.dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dialog-icon-danger {
+  background: #fee;
+  color: var(--danger, #dc3545);
+}
+
+.dialog-icon-warning {
+  background: #fff3cd;
+  color: var(--warning, #ffc107);
+}
+
+.dialog-icon-info {
+  background: #e7f3ff;
+  color: var(--info, #17a2b8);
+}
+
+.dialog-title {
+  flex: 1;
+  margin: 0;
+  padding-top: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-900, #212529);
+  line-height: 1.3;
+}
+
+.dialog-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--gray-600, #6c757d);
+  cursor: pointer;
+  transition: all var(--duration-fast, 150ms);
+  flex-shrink: 0;
+}
+
+.dialog-close:hover {
+  background: var(--gray-100, #e9ecef);
+  color: var(--gray-900, #212529);
+}
+
+.dialog-close:focus-visible {
+  outline: 2px solid var(--ahab-blue, #0066cc);
+  outline-offset: 2px;
+}
+
+/* Dialog Body */
+.dialog-body {
+  flex: 1;
+  padding: var(--space-6, 1.5rem);
+  overflow-y: auto;
+}
+
+.dialog-message {
+  margin: 0 0 var(--space-4, 1rem) 0;
+  color: var(--gray-700, #495057);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Consequences List (WEB 12.2) */
+.dialog-consequences {
+  margin-top: var(--space-4, 1rem);
+  padding: var(--space-4, 1rem);
+  background: var(--gray-50, #f8f9fa);
+  border-radius: var(--radius-base, 6px);
+  border-left: 3px solid var(--gray-400, #adb5bd);
+}
+
+.dialog-danger .dialog-consequences {
+  background: #fee;
+  border-left-color: var(--danger, #dc3545);
+}
+
+.dialog-warning .dialog-consequences {
+  background: #fff3cd;
+  border-left-color: var(--warning, #ffc107);
+}
+
+.consequences-heading {
+  margin: 0 0 var(--space-2, 0.5rem) 0;
+  font-weight: 600;
+  color: var(--gray-900, #212529);
+  font-size: 0.875rem;
+}
+
+.consequences-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.consequence-item {
+  position: relative;
+  padding-left: var(--space-5, 1.25rem);
+  margin-bottom: var(--space-2, 0.5rem);
+  color: var(--gray-700, #495057);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.consequence-item:last-child {
+  margin-bottom: 0;
+}
+
+.consequence-item::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--gray-600, #6c757d);
+  font-weight: bold;
+}
+
+/* Confirmation Checkbox */
+.dialog-checkbox {
+  margin-top: var(--space-4, 1rem);
+  padding: var(--space-4, 1rem);
+  background: var(--gray-50, #f8f9fa);
+  border-radius: var(--radius-base, 6px);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+  cursor: pointer;
+  user-select: none;
+}
+
+.confirm-checkbox {
+  margin-top: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-text {
+  flex: 1;
+  color: var(--gray-700, #495057);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* Dialog Actions (WEB 8.5, 11.3) */
+.dialog-actions {
+  display: flex;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-6, 1.5rem);
+  border-top: 1px solid var(--gray-200, #dee2e6);
+  background: var(--gray-50, #f8f9fa);
+}
+
+.dialog-actions .btn {
+  flex: 1;
+  min-height: var(--touch-target-min, 44px);
+  font-weight: 600;
+}
+
+.dialog-btn-cancel {
+  background: white;
+  color: var(--gray-700, #495057);
+  border: 1px solid var(--gray-300, #dee2e6);
+}
+
+.dialog-btn-cancel:hover {
+  background: var(--gray-100, #e9ecef);
+  border-color: var(--gray-400, #adb5bd);
+}
+
+.dialog-btn-confirm {
+  background: var(--danger, #dc3545);
+  color: white;
+  border: none;
+}
+
+.dialog-btn-confirm:hover:not(:disabled) {
+  background: #c82333;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.dialog-btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-warning {
+  background: var(--warning, #ffc107);
+  color: var(--gray-900, #212529);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #e0a800;
+}
+
+/* Responsive Design (WEB 8.2) */
+@media (max-width: 768px) {
+  .confirmation-dialog {
+    max-width: calc(100% - 1rem);
+    width: calc(100% - 1rem);
+  }
+  
+  .dialog-header,
+  .dialog-body,
+  .dialog-actions {
+    padding: var(--space-4, 1rem);
+  }
+  
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .dialog-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Focus Trap (Accessibility) */
+.confirmation-dialog:not([hidden]) ~ * {
+  /* Prevent focus on elements behind dialog */
+  pointer-events: none;
+}
+
+/* Keyboard Navigation (WEB 3.1) */
+.confirmation-dialog:focus {
+  outline: none;
+}
+
+.confirmation-dialog *:focus-visible {
+  outline: 2px solid var(--ahab-blue, #0066cc);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .dialog-backdrop,
+  .confirmation-dialog {
+    display: none;
+  }
+}
+</style>
+
+<script>
+// Dialog functionality (to be included in main.js or inline)
+(function() {
+  'use strict';
+  
+  // Show dialog
+  function showDialog(dialogId) {
+    const dialog = document.getElementById(dialogId);
+    const backdrop = document.getElementById(dialogId + '-backdrop');
+    
+    if (!dialog || !backdrop) return;
+    
+    // Show backdrop and dialog
+    backdrop.setAttribute('aria-hidden', 'false');
+    dialog.removeAttribute('hidden');
+    
+    // Focus first focusable element
+    const firstFocusable = dialog.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) {
+      setTimeout(() => firstFocusable.focus(), 100);
+    }
+    
+    // Trap focus within dialog
+    trapFocus(dialog);
+    
+    // Announce to screen readers (WEB 3.5)
+    announceToScreenReader('Dialog opened: ' + dialog.getAttribute('aria-labelledby'));
+  }
+  
+  // Hide dialog
+  function hideDialog(dialogId) {
+    const dialog = document.getElementById(dialogId);
+    const backdrop = document.getElementById(dialogId + '-backdrop');
+    
+    if (!dialog || !backdrop) return;
+    
+    // Hide backdrop and dialog
+    backdrop.setAttribute('aria-hidden', 'true');
+    dialog.setAttribute('hidden', '');
+    
+    // Return focus to trigger element
+    const trigger = document.querySelector('[data-dialog-trigger="' + dialogId + '"]');
+    if (trigger) {
+      trigger.focus();
+    }
+    
+    // Announce to screen readers
+    announceToScreenReader('Dialog closed');
+  }
+  
+  // Trap focus within dialog
+  function trapFocus(dialog) {
+    const focusableElements = dialog.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+    
+    dialog.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusable) {
+            e.preventDefault();
+            lastFocusable.focus();
+          }
+        } else {
+          if (document.activeElement === lastFocusable) {
+            e.preventDefault();
+            firstFocusable.focus();
+          }
+        }
+      }
+      
+      // Close on Escape
+      if (e.key === 'Escape') {
+        const dialogId = dialog.getAttribute('id');
+        hideDialog(dialogId);
+      }
+    });
+  }
+  
+  // Handle checkbox requirement
+  function handleCheckboxRequirement() {
+    document.querySelectorAll('.confirm-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const confirmBtn = this.closest('.confirmation-dialog').querySelector('.dialog-btn-confirm');
+        if (confirmBtn) {
+          confirmBtn.disabled = !this.checked;
+        }
+      });
+    });
+  }
+  
+  // Announce to screen readers (WEB 3.5)
+  function announceToScreenReader(message) {
+    const liveRegion = document.querySelector('[role="status"][aria-live]');
+    if (liveRegion) {
+      liveRegion.textContent = message;
+      setTimeout(() => {
+        liveRegion.textContent = '';
+      }, 1000);
+    }
+  }
+  
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  
+  function init() {
+    // Handle dismiss buttons
+    document.querySelectorAll('[data-dismiss]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const dialogId = this.getAttribute('data-dismiss');
+        hideDialog(dialogId);
+      });
+    });
+    
+    // Handle confirm buttons
+    document.querySelectorAll('[data-confirm]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const dialogId = this.getAttribute('data-confirm');
+        const action = this.getAttribute('data-action');
+        
+        // Execute action (URL or JavaScript)
+        if (action) {
+          if (action.startsWith('http') || action.startsWith('/')) {
+            window.location.href = action;
+          } else {
+            // Execute as JavaScript
+            try {
+              eval(action);
+            } catch (e) {
+              console.error('Error executing dialog action:', e);
+            }
+          }
+        }
+        
+        hideDialog(dialogId);
+      });
+    });
+    
+    // Handle backdrop clicks
+    document.querySelectorAll('.dialog-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', function() {
+        const dialogId = this.getAttribute('data-dialog');
+        hideDialog(dialogId);
+      });
+    });
+    
+    // Handle checkbox requirements
+    handleCheckboxRequirement();
+  }
+  
+  // Expose functions globally
+  window.showDialog = showDialog;
+  window.hideDialog = hideDialog;
+})();
+</script>

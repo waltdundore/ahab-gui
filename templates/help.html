@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Help - Ahab GUI{% endblock %}
+
+{% block content %}
+{% include 'components/page-header.html' %}
+
+<main id="main-content" class="main-content">
+    <div class="container">
+        <section class="content-section">
+            <h2>Help</h2>
+            <p>Get help with Ahab GUI and workstation management.</p>
+            
+            <div class="card">
+                <h3>Getting Started</h3>
+                <ol>
+                    <li>Create a workstation using the Workstation page</li>
+                    <li>Install services from the Services page</li>
+                    <li>Run tests to verify everything works</li>
+                </ol>
+            </div>
+            
+            <div class="card">
+                <h3>Documentation</h3>
+                <ul>
+                    <li><a href="https://github.com/waltdundore/ahab" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                    <li><a href="https://github.com/waltdundore/ahab/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a></li>
+                    <li><a href="https://github.com/waltdundore/ahab/blob/main/TROUBLESHOOTING.md" target="_blank" rel="noopener noreferrer">Troubleshooting Guide</a></li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>Common Issues</h3>
+                <dl>
+                    <dt>Workstation won't start</dt>
+                    <dd>Make sure VirtualBox or VMware is installed and running.</dd>
+                    
+                    <dt>Service installation fails</dt>
+                    <dd>Ensure the workstation is running before installing services.</dd>
+                    
+                    <dt>Tests fail</dt>
+                    <dd>Check that all services are installed and running.</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

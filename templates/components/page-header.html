@@ -1,0 +1,228 @@
+{#
+  Page Header Component
+  
+  Provides consistent page headers with clear hierarchy and navigation context.
+  
+  Validates:
+  - Requirements 1.2 (Heading hierarchy)
+  - Requirements 4.3 (Breadcrumb navigation)
+  - Requirements 11.1 (Consistent visual patterns)
+  
+  Usage:
+    {% include 'components/page-header.html' with context %}
+  
+  Required context:
+    - page_title: str - Main page heading (H1)
+    - breadcrumbs: List[Breadcrumb] - Navigation path
+    
+  Optional context:
+    - page_description: str - Plain language description
+    - page_icon: str - Icon name for header
+    - last_updated: datetime - Last update timestamp
+#}
+
+<header class="page-header" role="banner">
+  {# Breadcrumb Navigation #}
+  {% if breadcrumbs and breadcrumbs|length > 0 %}
+  <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumbs">
+      {% for crumb in breadcrumbs %}
+      <li class="breadcrumb-item{% if crumb.is_current %} active{% endif %}">
+        {% if crumb.is_current %}
+          <span aria-current="page">{{ crumb.label }}</span>
+        {% else %}
+          <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </nav>
+  {% endif %}
+  
+  {# Main Page Heading (H1) #}
+  <div class="page-title-wrapper">
+    {% if page_icon %}
+    <span class="page-icon" aria-hidden="true">
+      <i class="icon-{{ page_icon }}"></i>
+    </span>
+    {% endif %}
+    
+    <h1 class="page-title">{{ page_title }}</h1>
+  </div>
+  
+  {# Optional Description #}
+  {% if page_description %}
+  <p class="page-description">{{ page_description }}</p>
+  {% endif %}
+  
+  {# Optional Metadata #}
+  {% if last_updated or reading_time %}
+  <div class="page-meta">
+    {% if last_updated %}
+    <span class="meta-item">
+      <i class="icon-clock" aria-hidden="true"></i>
+      <span class="sr-only">Last updated:</span>
+      <time datetime="{{ last_updated.isoformat() }}">
+        {{ last_updated.strftime('%B %d, %Y') }}
+      </time>
+    </span>
+    {% endif %}
+    
+    {% if reading_time %}
+    <span class="meta-item">
+      <i class="icon-book" aria-hidden="true"></i>
+      <span class="sr-only">Estimated reading time:</span>
+      {{ reading_time }} min read
+    </span>
+    {% endif %}
+  </div>
+  {% endif %}
+</header>
+
+<style>
+/* Page Header Styles */
+.page-header {
+  margin-bottom: var(--space-xl, 2rem);
+  padding-bottom: var(--space-lg, 1.5rem);
+  border-bottom: 1px solid var(--gray-300, #dee2e6);
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb-nav {
+  margin-bottom: var(--space-md, 1rem);
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gray-700, #495057);
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  padding: 0 var(--space-sm, 0.5rem);
+  color: var(--gray-500, #6c757d);
+}
+
+.breadcrumb-item a {
+  color: var(--ahab-blue, #0066cc);
+  text-decoration: none;
+  transition: color var(--transition-fast, 150ms ease);
+}
+
+.breadcrumb-item a:hover {
+  color: var(--ahab-navy, #003d7a);
+  text-decoration: underline;
+}
+
+.breadcrumb-item a:focus-visible {
+  outline: 2px solid var(--ahab-blue, #0066cc);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.breadcrumb-item.active {
+  color: var(--gray-900, #212529);
+  font-weight: 500;
+}
+
+/* Page Title */
+.page-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md, 1rem);
+  margin-bottom: var(--space-sm, 0.5rem);
+}
+
+.page-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--ahab-blue, #0066cc);
+  color: white;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ahab-navy, #003d7a);
+  line-height: 1.2;
+}
+
+/* Page Description */
+.page-description {
+  margin: var(--space-sm, 0.5rem) 0 0 0;
+  font-size: 1.125rem;
+  color: var(--gray-700, #495057);
+  line-height: 1.5;
+  max-width: 65ch; /* Optimal reading width */
+}
+
+/* Page Metadata */
+.page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg, 1.5rem);
+  margin-top: var(--space-md, 1rem);
+  font-size: 0.875rem;
+  color: var(--gray-700, #495057);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs, 0.25rem);
+}
+
+.meta-item i {
+  color: var(--gray-500, #6c757d);
+}
+
+/* Responsive Design (WEB 8.2) */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .page-description {
+    font-size: 1rem;
+  }
+  
+  .page-icon {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.25rem;
+  }
+  
+  .breadcrumbs {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+</style>

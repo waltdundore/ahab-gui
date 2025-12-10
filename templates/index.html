@@ -1,121 +1,279 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Ahab GUI{% endblock %}
+{% block title %}Ahab Infrastructure Automation{% endblock %}
 
 {% block content %}
-<!-- Status Section -->
-<section class="status-section" id="status-section">
-    <div class="card">
-        <h2>System Status</h2>
-        <div id="system-status" class="system-status">
-            <div class="status-item">
-                <span class="status-label">Workstation:</span>
-                <span id="workstation-status" class="status-badge status-unknown">Checking...</span>
+{# Page Header with Breadcrumbs - Validates: Requirements 1.2, 4.3 #}
+{% set page_title = "Dashboard" %}
+{% set page_description = "Manage your infrastructure automation workstation and services" %}
+{% set page_icon = "home" %}
+{% include 'components/page-header.html' %}
+
+{# Status Indicator Section - Validates: Requirements 6.4, 13.1 #}
+<div id="status-section" class="status-section" role="region" aria-label="System Status">
+    <div class="status-cards">
+        <div id="workstation-status" class="status-card">
+            <div class="status-card-icon" aria-hidden="true">🖥️</div>
+            <div class="status-card-content">
+                <h2 class="status-card-title">Workstation</h2>
+                <p class="status-card-value" id="workstation-status-text">Loading...</p>
+                <p class="status-card-meta" id="workstation-status-meta"></p>
             </div>
-            <div class="status-item">
-                <span class="status-label">Services:</span>
-                <span id="services-count" class="status-text">0 deployed</span>
+        </div>
+        
+        <div id="services-status" class="status-card">
+            <div class="status-card-icon" aria-hidden="true">📦</div>
+            <div class="status-card-content">
+                <h2 class="status-card-title">Services</h2>
+                <p class="status-card-value" id="services-status-text">Loading...</p>
+                <p class="status-card-meta" id="services-status-meta"></p>
             </div>
         </div>
     </div>
-</section>
+</div>
 
-<!-- Actions Section -->
-<section class="actions-section" id="actions-section">
-    <!-- Install Section (shown when workstation not installed) -->
-    <div class="card action-card" id="install-card" style="display: none;">
-        <h2>Get Started</h2>
-        <p class="card-description">
-            Install the Ahab workstation to begin deploying services.
-            This creates a virtual machine with all necessary tools.
-        </p>
-        <button class="btn btn-primary btn-large" onclick="app.executeCommand('install')">
-            <span class="btn-icon">🚀</span>
-            Install Workstation
+{# Action Cards Section - Progressive Disclosure - Validates: Requirements 16.1, 16.2 #}
+<div id="action-cards-section" class="action-cards-section" role="region" aria-label="Available Actions">
+    <h2 class="section-heading">What would you like to do?</h2>
+    <div id="action-cards-container" class="cards-grid">
+        {# Action cards will be dynamically inserted here based on system state #}
+        <div class="loading-placeholder">
+            <div class="spinner" aria-label="Loading actions"></div>
+            <p>Loading available actions...</p>
+        </div>
+    </div>
+</div>
+
+{# Output Terminal - Hidden until command runs - Validates: Requirements 9.2, 9.3 #}
+<div id="output-section" class="output-section" style="display: none;" role="region" aria-label="Command Output">
+    <div class="output-header">
+        <h2 class="output-title">Command Output</h2>
+        <button class="btn btn-secondary btn-sm" onclick="hideOutput()" aria-label="Hide command output">
+            Hide Output
         </button>
     </div>
-
-    <!-- Services Section (shown when workstation is ready) -->
-    <div class="card" id="services-card" style="display: none;">
-        <h2>Available Services</h2>
-        <p class="card-description">
-            Deploy services to your workstation with a single click.
-        </p>
-        <div class="services-grid" id="services-grid">
-            <!-- Service cards will be inserted here -->
-            <div class="service-card">
-                <h3>Apache</h3>
-                <p>Web server for hosting websites and applications</p>
-                <button class="btn btn-secondary" onclick="app.deployService('apache')">
-                    Deploy Apache
-                </button>
-            </div>
-            <div class="service-card">
-                <h3>MySQL</h3>
-                <p>Database server for storing application data</p>
-                <button class="btn btn-secondary" onclick="app.deployService('mysql')">
-                    Deploy MySQL
-                </button>
-            </div>
-            <div class="service-card">
-                <h3>PHP</h3>
-                <p>Programming language runtime for web applications</p>
-                <button class="btn btn-secondary" onclick="app.deployService('php')">
-                    Deploy PHP
-                </button>
-            </div>
-        </div>
+    <div id="command-output" class="terminal" role="log" aria-live="polite" aria-atomic="false"></div>
+    <div class="output-actions">
+        <button class="btn btn-secondary" onclick="hideOutput()">
+            Close
+        </button>
     </div>
-
-    <!-- Management Section (shown when workstation is running) -->
-    <div class="card" id="management-card" style="display: none;">
-        <h2>Management</h2>
-        <div class="button-group">
-            <button class="btn btn-secondary" onclick="app.executeCommand('verify-install')">
-                <span class="btn-icon">✓</span>
-                Verify Installation
-            </button>
-            <button class="btn btn-secondary" onclick="app.executeCommand('test')">
-                <span class="btn-icon">🧪</span>
-                Run Tests
-            </button>
-            <button class="btn btn-danger" onclick="app.executeCommand('clean')">
-                <span class="btn-icon">🗑️</span>
-                Clean Up
-            </button>
-        </div>
-    </div>
-</section>
-
-<!-- Command Output Section -->
-<section class="output-section" id="output-section" style="display: none;">
-    <div class="card">
-        <div class="output-header">
-            <h2>Command Output</h2>
-            <button class="btn btn-small btn-secondary" onclick="app.clearOutput()">Clear</button>
-        </div>
-        <div class="terminal" id="terminal">
-            <div id="terminal-output"></div>
-        </div>
-        <div class="output-footer" id="output-footer" style="display: none;">
-            <span id="command-status" class="status-text"></span>
-            <span id="command-duration" class="status-text"></span>
-        </div>
-    </div>
-</section>
-
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loading-overlay" style="display: none;">
-    <div class="loading-spinner"></div>
-    <p class="loading-text">Executing command...</p>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
-<script>
-    // Initialize the app when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        app.init();
-    });
-</script>
+{# Loading State Component - Validates: Requirements 9.3 #}
+{% include 'components/loading-state.html' %}
+
+<style>
+/* Status Section Styles */
+.status-section {
+    margin-bottom: var(--space-xl, 2rem);
+}
+
+.status-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-lg, 1.5rem);
+    margin-bottom: var(--space-xl, 2rem);
+}
+
+.status-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md, 1rem);
+    padding: var(--space-lg, 1.5rem);
+    background: white;
+    border: 1px solid var(--gray-300, #dee2e6);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-base, 250ms ease);
+}
+
+.status-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.status-card-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.status-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.status-card-title {
+    margin: 0 0 var(--space-xs, 0.25rem) 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-600, #6c757d);
+}
+
+.status-card-value {
+    margin: 0 0 var(--space-xs, 0.25rem) 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ahab-navy, #003d7a);
+}
+
+.status-card-meta {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--gray-600, #6c757d);
+}
+
+/* Status Colors */
+.status-success {
+    color: var(--success, #28a745);
+}
+
+.status-warning {
+    color: var(--warning, #ffc107);
+}
+
+.status-error {
+    color: var(--danger, #dc3545);
+}
+
+.status-neutral {
+    color: var(--gray-600, #6c757d);
+}
+
+/* Action Cards Section */
+.action-cards-section {
+    margin-bottom: var(--space-xl, 2rem);
+}
+
+.section-heading {
+    margin: 0 0 var(--space-lg, 1.5rem) 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ahab-navy, #003d7a);
+}
+
+/* Loading Placeholder */
+.loading-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl, 2rem);
+    text-align: center;
+    color: var(--gray-600, #6c757d);
+}
+
+.spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid var(--gray-300, #dee2e6);
+    border-top-color: var(--ahab-blue, #0066cc);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-md, 1rem);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Output Section Styles */
+.output-section {
+    margin-top: var(--space-xl, 2rem);
+    padding: var(--space-lg, 1.5rem);
+    background: var(--gray-900, #212529);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md, 1rem);
+}
+
+.output-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: white;
+}
+
+.terminal {
+    background: var(--gray-900, #212529);
+    color: #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.875rem;
+    padding: var(--space-md, 1rem);
+    border-radius: 0.25rem;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.terminal-prompt {
+    color: #00aaff;
+    font-weight: bold;
+}
+
+.terminal-info {
+    color: #ffaa00;
+}
+
+.terminal-success {
+    color: #00ff00;
+    font-weight: bold;
+}
+
+.terminal-error {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+.output-actions {
+    margin-top: var(--space-md, 1rem);
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Responsive Design (WEB 8.2) */
+@media (max-width: 768px) {
+    .status-cards {
+        grid-template-columns: 1fr;
+        gap: var(--space-md, 1rem);
+    }
+    
+    .status-card {
+        padding: var(--space-md, 1rem);
+    }
+    
+    .status-card-icon {
+        font-size: 1.5rem;
+    }
+    
+    .status-card-value {
+        font-size: 1.25rem;
+    }
+    
+    .section-heading {
+        font-size: 1.25rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .output-section,
+    .output-actions {
+        display: none;
+    }
+    
+    .status-card {
+        break-inside: avoid;
+    }
+}
+</style>
 {% endblock %}

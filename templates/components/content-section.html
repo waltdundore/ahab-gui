@@ -1,0 +1,304 @@
+{#
+  Content Section Component
+  
+  Organizes content with proper heading hierarchy and white space.
+  Supports progressive disclosure through collapsible sections.
+  
+  Validates:
+  - Requirements 1.2 (Heading hierarchy)
+  - Requirements 1.3 (Short paragraphs)
+  - Requirements 5.1 (Section spacing)
+  - Requirements 6.1 (Action-oriented content)
+  
+  Usage:
+    {% include 'components/content-section.html' with context %}
+  
+  Required context:
+    - section: ContentSection - Section data model
+    
+  Optional context:
+    - section_id: str - Unique ID for section (for collapsible)
+#}
+
+{% if section_id is not defined %}
+  {% if loop is defined %}
+    {% set section_id = 'section-' ~ loop.index %}
+  {% else %}
+    {% set section_id = 'section-0' %}
+  {% endif %}
+{% endif %}
+{% set heading_tag = 'h' ~ section.level %}
+{% set section_classes = ['content-section'] %}
+{% if section.collapsible %}
+  {% set _ = section_classes.append('collapsible') %}
+  {% if section.collapsed %}
+    {% set _ = section_classes.append('collapsed') %}
+  {% endif %}
+{% endif %}
+
+<section class="{{ section_classes | join(' ') }}" 
+         {% if section.collapsible %}aria-labelledby="{{ section_id }}-heading"{% endif %}>
+  
+  {# Section Heading #}
+  {% if section.collapsible %}
+  <button class="section-toggle" 
+          aria-expanded="{% if section.collapsed %}false{% else %}true{% endif %}"
+          aria-controls="{{ section_id }}-content"
+          id="{{ section_id }}-heading">
+    <{{ heading_tag }} class="section-heading">
+      {{ section.heading }}
+    </{{ heading_tag }}>
+    <span class="toggle-icon" aria-hidden="true">
+      <i class="icon-chevron-down"></i>
+    </span>
+  </button>
+  {% else %}
+  <{{ heading_tag }} class="section-heading" id="{{ section_id }}-heading">
+    {{ section.heading }}
+  </{{ heading_tag }}>
+  {% endif %}
+  
+  {# Section Content #}
+  <div class="section-content" 
+       id="{{ section_id }}-content"
+       {% if section.collapsible %}
+       role="region"
+       aria-labelledby="{{ section_id }}-heading"
+       {% if section.collapsed %}hidden{% endif %}
+       {% endif %}>
+    
+    {# Main content - can be HTML or plain text #}
+    {% if section.content %}
+    <div class="section-body">
+      {{ section.content | safe }}
+    </div>
+    {% endif %}
+    
+    {# Subsections (recursive) #}
+    {% if section.subsections and section.subsections | length > 0 %}
+    <div class="subsections">
+      {% for subsection in section.subsections %}
+        {% set section_id = section_id ~ '-' ~ loop.index %}
+        {% set section = subsection %}
+        {% include 'components/content-section.html' %}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+/* Content Section Styles */
+.content-section {
+  margin-bottom: var(--space-xl, 2rem);
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section Heading */
+.section-heading {
+  margin: 0 0 var(--space-md, 1rem) 0;
+  color: var(--ahab-navy, #003d7a);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Heading sizes based on level */
+.content-section h2.section-heading {
+  font-size: 1.75rem;
+}
+
+.content-section h3.section-heading {
+  font-size: 1.5rem;
+}
+
+.content-section h4.section-heading {
+  font-size: 1.25rem;
+}
+
+.content-section h5.section-heading {
+  font-size: 1.125rem;
+}
+
+.content-section h6.section-heading {
+  font-size: 1rem;
+}
+
+/* Section Content */
+.section-content {
+  color: var(--gray-900, #212529);
+  line-height: 1.6;
+}
+
+.section-body {
+  margin-bottom: var(--space-md, 1rem);
+}
+
+/* Paragraph spacing (WEB 1.3) */
+.section-body p {
+  margin: 0 0 var(--space-md, 1rem) 0;
+  max-width: 65ch; /* Optimal reading width */
+}
+
+.section-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists */
+.section-body ul,
+.section-body ol {
+  margin: 0 0 var(--space-md, 1rem) 0;
+  padding-left: var(--space-lg, 1.5rem);
+}
+
+.section-body li {
+  margin-bottom: var(--space-sm, 0.5rem);
+}
+
+.section-body li:last-child {
+  margin-bottom: 0;
+}
+
+/* Subsections */
+.subsections {
+  margin-top: var(--space-lg, 1.5rem);
+  padding-left: var(--space-lg, 1.5rem);
+  border-left: 2px solid var(--gray-300, #dee2e6);
+}
+
+/* Collapsible Sections (Progressive Disclosure) */
+.content-section.collapsible .section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-md, 1rem);
+  background: var(--gray-50, #f8f9fa);
+  border: 1px solid var(--gray-300, #dee2e6);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms ease);
+  text-align: left;
+}
+
+.content-section.collapsible .section-toggle:hover {
+  background: var(--gray-100, #e9ecef);
+  border-color: var(--ahab-blue, #0066cc);
+}
+
+.content-section.collapsible .section-toggle:focus-visible {
+  outline: 2px solid var(--ahab-blue, #0066cc);
+  outline-offset: 2px;
+}
+
+.content-section.collapsible .section-heading {
+  margin: 0;
+}
+
+.content-section.collapsible .toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--ahab-blue, #0066cc);
+  transition: transform var(--transition-fast, 150ms ease);
+}
+
+.content-section.collapsible.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.content-section.collapsible .section-content {
+  margin-top: var(--space-md, 1rem);
+  padding: var(--space-md, 1rem);
+  background: white;
+  border: 1px solid var(--gray-300, #dee2e6);
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.content-section.collapsible.collapsed .section-content {
+  display: none;
+}
+
+/* Responsive Design (WEB 8.2) */
+@media (max-width: 768px) {
+  .content-section h2.section-heading {
+    font-size: 1.5rem;
+  }
+  
+  .content-section h3.section-heading {
+    font-size: 1.25rem;
+  }
+  
+  .content-section h4.section-heading {
+    font-size: 1.125rem;
+  }
+  
+  .subsections {
+    padding-left: var(--space-md, 1rem);
+  }
+  
+  .content-section.collapsible .section-toggle {
+    padding: var(--space-sm, 0.5rem) var(--space-md, 1rem);
+  }
+}
+
+/* Accessibility */
+.content-section.collapsible .section-content[hidden] {
+  display: none;
+}
+
+/* Print styles */
+@media print {
+  .content-section.collapsible .section-content {
+    display: block !important;
+  }
+  
+  .content-section.collapsible .toggle-icon {
+    display: none;
+  }
+}
+</style>
+
+<script>
+// Progressive disclosure: Toggle collapsible sections
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleButtons = document.querySelectorAll('.section-toggle');
+  
+  toggleButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const section = this.closest('.content-section');
+      const content = this.nextElementSibling;
+      const isExpanded = this.getAttribute('aria-expanded') === 'true';
+      
+      // Toggle state
+      this.setAttribute('aria-expanded', !isExpanded);
+      section.classList.toggle('collapsed');
+      
+      if (isExpanded) {
+        content.setAttribute('hidden', '');
+      } else {
+        content.removeAttribute('hidden');
+      }
+      
+      // Announce to screen readers
+      const announcement = isExpanded ? 'Section collapsed' : 'Section expanded';
+      announceToScreenReader(announcement);
+    });
+  });
+});
+
+function announceToScreenReader(message) {
+  const liveRegion = document.querySelector('[role="status"][aria-live="polite"]');
+  if (liveRegion) {
+    liveRegion.textContent = message;
+    setTimeout(() => {
+      liveRegion.textContent = '';
+    }, 1000);
+  }
+}
+</script>

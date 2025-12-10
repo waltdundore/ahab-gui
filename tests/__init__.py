@@ -1,1 +1,1 @@
-"""Tests for Ahab GUI."""
+"""Tests package for Ahab GUI."""

@@ -1,0 +1,19 @@
+{#
+Skip Links Component
+
+Provides keyboard navigation shortcuts to main content areas.
+Validates: Requirements 3.1 (Keyboard navigation)
+
+Usage:
+    {% include 'components/skip-links.html' %}
+
+The skip links are visually hidden until focused via keyboard (Tab key).
+#}
+
+<div class="skip-links">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <a href="#main-nav" class="skip-link">Skip to navigation</a>
+    {% if show_breadcrumbs %}
+    <a href="#breadcrumbs" class="skip-link">Skip to breadcrumbs</a>
+    {% endif %}
+</div>

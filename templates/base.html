@@ -3,52 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Ahab GUI{% endblock %}</title>
     
-    <!-- Styles -->
+    {# Design System CSS - Load in order #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <!-- Socket.IO -->
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    
-    {% block extra_head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+    {# Skip Links for Keyboard Navigation - Validates: Requirements 3.1 #}
+    {% set show_breadcrumbs = breadcrumbs is defined and breadcrumbs|length > 0 %}
+    {% include 'components/skip-links.html' %}
+    
+    {# ARIA Live Region for Screen Reader Announcements - Validates: Requirements 3.5 #}
+    <div id="aria-live-region" role="status" aria-live="polite" aria-atomic="true" class="sr-only">
+        {# Dynamic announcements inserted here via JavaScript #}
+    </div>
+    
+    <header role="banner">
         <div class="container">
             <div class="header-content">
-                <h1 class="logo">
-                    <span class="logo-icon">⚓</span>
-                    Ahab GUI
-                </h1>
-                <p class="tagline">Simple infrastructure automation</p>
+                <div class="branding">
+                    <img src="{{ url_for('static', filename='images/ahab-logo.png') }}" 
+                         alt="Ahab logo - whale tail symbol" 
+                         class="logo">
+                    <div>
+                        <h1>Ahab GUI</h1>
+                        <p class="tagline">Simple Infrastructure Automation</p>
+                    </div>
+                </div>
+                
+                {# Main Navigation - Validates: Requirements 4.1, 4.2 #}
+                {% if nav_items is not defined %}
+                    {# Default navigation items if not provided by view #}
+                    {% set nav_items = [
+                        {'label': 'Home', 'url': '/', 'is_current': request.path == '/', 'is_available': True, 'icon': 'home'},
+                        {'label': 'Workstation', 'url': '/workstation', 'is_current': request.path.startswith('/workstation'), 'is_available': True, 'icon': 'server'},
+                        {'label': 'Services', 'url': '/services', 'is_current': request.path.startswith('/services'), 'is_available': True, 'icon': 'grid'},
+                        {'label': 'Tests', 'url': '/tests', 'is_current': request.path.startswith('/tests'), 'is_available': True, 'icon': 'check'},
+                        {'label': 'Help', 'url': '/help', 'is_current': request.path.startswith('/help'), 'is_available': True, 'icon': 'help'}
+                    ] %}
+                {% endif %}
+                {% include 'components/navigation.html' %}
             </div>
         </div>
     </header>
-
-    <!-- Main Content -->
-    <main class="main">
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
+    
+    <main id="main-content" class="container" role="main">
+        {# Breadcrumb Navigation - Validates: Requirements 4.3 #}
+        {% if breadcrumbs is defined and breadcrumbs|length > 0 %}
+            {% include 'components/breadcrumbs.html' %}
+        {% endif %}
+        
+        {# Flash Messages with ARIA #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages" role="alert" aria-live="assertive">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
     </main>
-
-    <!-- Footer -->
-    <footer class="footer">
+    
+    <footer role="contentinfo">
         <div class="container">
-            <p>
-                Part of the <a href="https://github.com/waltdundore/ahab" target="_blank">Ahab</a> project
-                | <a href="https://github.com/waltdundore/ahab-gui" target="_blank">GitHub</a>
-            </p>
+            <p>&copy; 2025 Ahab Project | <a href="https://github.com/waltdundore/ahab">GitHub</a></p>
         </div>
     </footer>
-
-    <!-- Toast notifications -->
-    <div id="toast-container" class="toast-container"></div>
-
-    <!-- Scripts -->
+    
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    {% block extra_scripts %}{% endblock %}
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

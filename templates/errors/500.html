@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Ahab GUI{% endblock %}
+
+{% block content %}
+{# 500 Error Page - Plain Language (WEB 2.4) #}
+
+{% set error_title = "Something Went Wrong" %}
+{% set error_message = "We encountered an unexpected error while processing your request. Don't worry - your data is safe, and we've logged this issue." %}
+{% set error_code = error_code | default("SERVER_ERROR") %}
+{% set recovery_actions = [
+  "Wait a moment and try again",
+  "Refresh the page",
+  "Go back to the dashboard",
+  "If the problem persists, check the help documentation"
+] %}
+
+{% include 'components/error-message.html' %}
+
+{% endblock %}

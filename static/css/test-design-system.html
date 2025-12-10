@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahab Design System Test</title>
+    <link rel="stylesheet" href="design-system.css">
+    <link rel="stylesheet" href="components.css">
+    <link rel="stylesheet" href="utilities.css">
+    <style>
+        body {
+            font-family: var(--font-family-base);
+            background: var(--gray-50);
+            padding: var(--space-8);
+        }
+        .test-section {
+            background: white;
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-base);
+        }
+        .color-swatch {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-base);
+            margin: var(--space-2);
+            border: 1px solid var(--gray-300);
+        }
+        .color-label {
+            display: block;
+            text-align: center;
+            font-size: var(--font-size-xs);
+            margin-top: var(--space-1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-6">Ahab Design System Test</h1>
+        
+        <!-- Colors Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Brand Colors</h2>
+            <div class="d-flex flex-wrap gap-4">
+                <div>
+                    <div class="color-swatch" style="background: var(--ahab-blue);"></div>
+                    <span class="color-label">Ahab Blue</span>
+                </div>
+                <div>
+                    <div class="color-swatch" style="background: var(--ahab-navy);"></div>
+                    <span class="color-label">Ahab Navy</span>
+                </div>
+                <div>
+                    <div class="color-swatch" style="background: var(--ahab-light-blue);"></div>
+                    <span class="color-label">Light Blue</span>
+                </div>
+                <div>
+                    <div class="color-swatch" style="background: var(--color-success);"></div>
+                    <span class="color-label">Success</span>
+                </div>
+                <div>
+                    <div class="color-swatch" style="background: var(--color-danger);"></div>
+                    <span class="color-label">Danger</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typography Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Typography</h2>
+            <p class="text-xs mb-2">Extra Small Text (12px)</p>
+            <p class="text-sm mb-2">Small Text (14px)</p>
+            <p class="text-base mb-2">Base Text (16px)</p>
+            <p class="text-lg mb-2">Large Text (18px)</p>
+            <p class="text-xl mb-2">Extra Large Text (20px)</p>
+            <p class="text-2xl mb-2">2XL Text (24px)</p>
+            <p class="text-3xl mb-2">3XL Text (32px)</p>
+        </div>
+
+        <!-- Buttons Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Buttons</h2>
+            <div class="d-flex flex-wrap gap-3 mb-4">
+                <button class="btn btn-primary">Primary Button</button>
+                <button class="btn btn-secondary">Secondary Button</button>
+                <button class="btn btn-danger">Danger Button</button>
+                <button class="btn btn-outline-primary">Outline Button</button>
+            </div>
+            <div class="d-flex flex-wrap gap-3 mb-4">
+                <button class="btn btn-primary btn-sm">Small Button</button>
+                <button class="btn btn-primary">Normal Button</button>
+                <button class="btn btn-primary btn-lg">Large Button</button>
+            </div>
+            <div>
+                <button class="btn btn-primary" disabled>Disabled Button</button>
+            </div>
+        </div>
+
+        <!-- Cards Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Cards</h2>
+            <div class="card mb-4" style="max-width: 400px;">
+                <div class="card-header">
+                    <h3 class="card-title">Card Title</h3>
+                    <p class="card-subtitle">Card subtitle</p>
+                </div>
+                <div class="card-body">
+                    <p>This is the card body with some content. Cards are great for organizing information.</p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary btn-sm">Action</button>
+                </div>
+            </div>
+
+            <div class="action-card" style="max-width: 400px;">
+                <div class="action-card-icon">
+                    <img src="ahab-logo.png" alt="Ahab logo - whale tail symbol" style="width: 80px; height: auto;">
+                </div>
+                <h3 class="action-card-title">Action Card</h3>
+                <p class="action-card-description">This is an action-oriented card for progressive disclosure.</p>
+                <button class="btn btn-primary">Take Action</button>
+            </div>
+        </div>
+
+        <!-- Forms Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Forms</h2>
+            <form style="max-width: 400px;">
+                <div class="form-group">
+                    <label class="form-label" for="test-input">Input Label</label>
+                    <input type="text" class="form-control" id="test-input" placeholder="Enter text">
+                    <small class="form-text">This is helper text for the input.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="test-input-valid">Valid Input</label>
+                    <input type="text" class="form-control is-valid" id="test-input-valid" value="Valid input">
+                    <div class="valid-feedback">Looks good!</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="test-input-invalid">Invalid Input</label>
+                    <input type="text" class="form-control is-invalid" id="test-input-invalid" value="Invalid">
+                    <div class="invalid-feedback">Please provide a valid value.</div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Alerts Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Alerts</h2>
+            <div class="alert alert-success mb-3">
+                <strong>Success!</strong> Your operation completed successfully.
+            </div>
+            <div class="alert alert-info mb-3">
+                <strong>Info:</strong> Here's some information you should know.
+            </div>
+            <div class="alert alert-warning mb-3">
+                <strong>Warning:</strong> Please be careful with this action.
+            </div>
+            <div class="alert alert-danger mb-3">
+                <strong>Error:</strong> Something went wrong.
+            </div>
+        </div>
+
+        <!-- Badges Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Badges</h2>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge badge-primary">Primary</span>
+                <span class="badge badge-success">Success</span>
+                <span class="badge badge-danger">Danger</span>
+                <span class="badge badge-warning">Warning</span>
+                <span class="badge badge-info">Info</span>
+                <span class="badge badge-secondary">Secondary</span>
+            </div>
+        </div>
+
+        <!-- Status Indicators Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Status Indicators</h2>
+            <div class="d-flex flex-wrap gap-3">
+                <span class="status-indicator status-success">Running</span>
+                <span class="status-indicator status-danger">Stopped</span>
+                <span class="status-indicator status-warning">Warning</span>
+                <span class="status-indicator status-info">Info</span>
+            </div>
+        </div>
+
+        <!-- Terminal Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Terminal</h2>
+            <div class="terminal">
+<span class="terminal-info">$ make install</span>
+<span class="terminal-text">Installing workstation...</span>
+<span class="terminal-success">✓ Workstation created successfully</span>
+<span class="terminal-warning">⚠ Some packages need updating</span>
+<span class="terminal-error">✗ Error: Connection timeout</span>
+            </div>
+        </div>
+
+        <!-- Spacing Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Spacing Utilities</h2>
+            <div class="p-4 bg-light mb-3">Padding 4 (16px)</div>
+            <div class="p-6 bg-light mb-3">Padding 6 (24px)</div>
+            <div class="mt-4 p-4 bg-light">Margin Top 4 (16px)</div>
+        </div>
+
+        <!-- Loading Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Loading States</h2>
+            <div class="d-flex gap-4 items-center">
+                <div class="spinner"></div>
+                <div class="spinner spinner-sm"></div>
+                <span>Loading...</span>
+            </div>
+        </div>
+
+        <!-- Accessibility Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Accessibility</h2>
+            <a href="#main" class="skip-link">Skip to main content</a>
+            <p class="mb-3">Try tabbing through the page to test keyboard navigation.</p>
+            <p class="sr-only">This text is only visible to screen readers.</p>
+            <p>Screen reader only text is hidden above this line.</p>
+        </div>
+
+        <!-- Responsive Test -->
+        <div class="test-section">
+            <h2 class="text-2xl font-semibold mb-4">Responsive Utilities</h2>
+            <p class="d-sm-none bg-warning p-2 rounded">Visible only on mobile (< 768px)</p>
+            <p class="d-md-none bg-info text-white p-2 rounded">Hidden on desktop (≥ 768px)</p>
+        </div>
+    </div>
+</body>
+</html>

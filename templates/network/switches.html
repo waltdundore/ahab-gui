@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Network Switches - Ahab GUI{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">Network Switches</h1>
+                    <p class="text-muted mb-0">Manage HP Aruba and Ruckus network switches</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="environmentDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i> <span id="currentEnvironment">Development</span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="environmentDropdown">
+                            <li><a class="dropdown-item" href="#" onclick="setEnvironment('dev')">Development</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setEnvironment('prod')">Production</a></li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-outline-primary" onclick="refreshSwitchStatus()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Alert -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                <div>
+                    <strong>Environment:</strong> <span id="environmentName">Development</span> - 
+                    <span id="environmentDescription">Safe for testing and configuration changes</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Switch Management Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+                        <i class="bi bi-info-square"></i>
+                    </div>
+                    <h5 class="card-title">Show Version</h5>
+                    <p class="card-text">Get version information from all configured switches</p>
+                    <button class="btn btn-primary" onclick="showSwitchVersions()" id="versionBtn">
+                        <i class="bi bi-play"></i> Show Versions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-success bg-opacity-10 text-success mx-auto mb-3">
+                        <i class="bi bi-wifi"></i>
+                    </div>
+                    <h5 class="card-title">Test Connectivity</h5>
+                    <p class="card-text">Test network connectivity to all configured switches</p>
+                    <button class="btn btn-success" onclick="testSwitchConnectivity()" id="testBtn">
+                        <i class="bi bi-play"></i> Test Connectivity
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-warning bg-opacity-10 text-warning mx-auto mb-3">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <h5 class="card-title">Full Management</h5>
+                    <p class="card-text">Run complete switch management tasks</p>
+                    <button class="btn btn-warning" onclick="manageSwitches()" id="manageBtn">
+                        <i class="bi bi-play"></i> Manage All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-check"></i> Configuration Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6>Inventory Files</h6>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="status-indicator bg-warning me-3" id="devInventoryStatus"></div>
+                                <div>
+                                    <div class="fw-semibold">Development Inventory</div>
+                                    <small class="text-muted">inventory/dev/network-switches.yml</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator bg-warning me-3" id="prodInventoryStatus"></div>
+                                <div>
+                                    <div class="fw-semibold">Production Inventory</div>
+                                    <small class="text-muted">inventory/prod/network-switches.yml</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6>Supported Switch Types</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    HP Aruba (2930F, 2540, 3810M series)
+                                </li>
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Ruckus ICX (7450, 7150 series)
+                                </li>
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Generic SSH-enabled switches
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Instructions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-book"></i> Setup Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>First Time Setup</h6>
+                            <ol class="list-group list-group-numbered list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">Copy inventory template</div>
+                                        <code>cp inventory/dev/network-switches.yml.example inventory/dev/network-switches.yml</code>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">Edit inventory file</div>
+                                        Update with your actual switch IP addresses and credentials
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">Test connectivity</div>
+                                        Use the "Test Connectivity" button above
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Security Notes</h6>
+                            <div class="alert alert-warning">
+                                <i class="bi bi-shield-exclamation me-2"></i>
+                                <strong>Important:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Never commit real IP addresses to git</li>
+                                    <li>Use Ansible Vault for passwords</li>
+                                    <li>SSH key authentication is recommended</li>
+                                    <li>Inventory files are protected by .gitignore</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Output -->
+    <div class="row" id="outputSection" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-terminal"></i> Command Output
+                    </h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearOutput()">
+                        <i class="bi bi-x"></i> Clear
+                    </button>
+                </div>
+                <div class="card-body">
+                    <pre id="commandOutput" class="bg-dark text-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentEnvironment = 'dev';
+
+function setEnvironment(env) {
+    currentEnvironment = env;
+    const envName = env === 'dev' ? 'Development' : 'Production';
+    const envDescription = env === 'dev' ? 'Safe for testing and configuration changes' : 'Live production environment - use with caution';
+    const alertClass = env === 'dev' ? 'alert-info' : 'alert-warning';
+    
+    document.getElementById('currentEnvironment').textContent = envName;
+    document.getElementById('environmentName').textContent = envName;
+    document.getElementById('environmentDescription').textContent = envDescription;
+    
+    // Update alert styling
+    const alert = document.querySelector('.alert');
+    alert.className = `alert ${alertClass} d-flex align-items-center`;
+}
+
+function showSwitchVersions() {
+    executeCommand('version', 'Show Version Information');
+}
+
+function testSwitchConnectivity() {
+    executeCommand('test', 'Test Switch Connectivity');
+}
+
+function manageSwitches() {
+    executeCommand('manage', 'Full Switch Management');
+}
+
+function executeCommand(action, description) {
+    const btnMap = {
+        'version': 'versionBtn',
+        'test': 'testBtn',
+        'manage': 'manageBtn'
+    };
+    
+    const btn = document.getElementById(btnMap[action]);
+    const originalContent = btn.innerHTML;
+    
+    // Show loading state
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Running...';
+    btn.disabled = true;
+    
+    // Show output section
+    document.getElementById('outputSection').style.display = 'block';
+    document.getElementById('commandOutput').textContent = `Starting ${description}...\nEnvironment: ${currentEnvironment}\n\n`;
+    
+    // Scroll to output
+    document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+    
+    // Determine API endpoint
+    let endpoint;
+    switch(action) {
+        case 'version':
+            endpoint = '/api/network/switches/version';
+            break;
+        case 'test':
+            endpoint = '/api/network/switches/test';
+            break;
+        case 'manage':
+            endpoint = '/api/network/switches/manage';
+            break;
+    }
+    
+    // Execute command via API
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            environment: currentEnvironment
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('commandOutput').textContent += `✅ Command completed successfully\n\nOutput:\n${data.output}\n\nDuration: ${data.duration}s\nTimestamp: ${data.timestamp}`;
+        } else {
+            document.getElementById('commandOutput').textContent += `❌ Command failed\n\nError:\n${data.message || 'Unknown error'}\n\nOutput:\n${data.output || 'No output'}`;
+        }
+    })
+    .catch(error => {
+        document.getElementById('commandOutput').textContent += `❌ Request failed: ${error.message}`;
+    })
+    .finally(() => {
+        // Restore button
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    });
+}
+
+function clearOutput() {
+    document.getElementById('outputSection').style.display = 'none';
+    document.getElementById('commandOutput').textContent = '';
+}
+
+function refreshSwitchStatus() {
+    const refreshBtn = document.querySelector('button[onclick="refreshSwitchStatus()"]');
+    const originalContent = refreshBtn.innerHTML;
+    
+    refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Refreshing...';
+    refreshBtn.disabled = true;
+    
+    // Simulate status check (replace with actual API call)
+    setTimeout(() => {
+        refreshBtn.innerHTML = originalContent;
+        refreshBtn.disabled = false;
+        
+        // Update status indicators (placeholder)
+        document.getElementById('devInventoryStatus').className = 'status-indicator bg-success me-3';
+        document.getElementById('prodInventoryStatus').className = 'status-indicator bg-warning me-3';
+    }, 1000);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    setEnvironment('dev');
+});
+</script>
+
+<style>
+.icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.list-group-numbered .list-group-item {
+    border: none;
+    padding-left: 0;
+}
+
+pre {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+</style>
+{% endblock %}

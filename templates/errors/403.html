@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Access Denied - Ahab GUI{% endblock %}
+
+{% block content %}
+{# 403 Error Page - Plain Language (WEB 2.4) #}
+
+{% set error_title = "Access Denied" %}
+{% set error_message = "You don't have permission to access this page. This might be because your session expired or you're trying to access a restricted area." %}
+{% set error_code = error_code | default("FORBIDDEN") %}
+{% set recovery_actions = [
+  "Refresh the page to renew your session",
+  "Go back to the dashboard",
+  "Make sure you're logged in correctly",
+  "Contact support if you believe this is an error"
+] %}
+
+{% include 'components/error-message.html' %}
+
+{% endblock %}

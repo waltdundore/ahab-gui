@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Workstation - Ahab GUI{% endblock %}
+
+{% block content %}
+{% include 'components/page-header.html' %}
+
+<main id="main-content" class="main-content">
+    <div class="container">
+        <section class="content-section">
+            <h2>Workstation Management</h2>
+            <p>Manage your Ahab workstation VM.</p>
+            
+            <!-- OS Selection Card (Progressive Disclosure: shown only when no workstation) -->
+            <div class="card" id="os-selection-card" style="display: none;">
+                <h3>Choose Operating System</h3>
+                <p>Select which Linux distribution to install. All three are fully supported with Docker, Ansible, and security hardening:</p>
+                
+                <div class="os-options">
+                    <label class="os-option">
+                        <input type="radio" name="os" value="fedora" checked>
+                        <div class="os-card">
+                            <h4>Fedora 43</h4>
+                            <span class="badge badge-primary">Default</span>
+                            <p>Cutting-edge Linux with latest features and technologies</p>
+                            <ul class="os-features">
+                                <li>Package Manager: DNF (fast dependency resolution)</li>
+                                <li>Security: SELinux (mandatory access controls)</li>
+                                <li>Updates: 6-month releases, latest software</li>
+                                <li>Best for: Development, learning new features</li>
+                            </ul>
+                        </div>
+                    </label>
+                    
+                    <label class="os-option">
+                        <input type="radio" name="os" value="debian">
+                        <div class="os-card">
+                            <h4>Debian 13 (Trixie)</h4>
+                            <p>Rock-solid stability with mature ecosystem and extensive testing</p>
+                            <ul class="os-features">
+                                <li>Package Manager: APT (extensive repositories)</li>
+                                <li>Security: AppArmor (application sandboxing)</li>
+                                <li>Updates: Thoroughly tested, 2-3 year cycles</li>
+                                <li>Best for: Production servers, critical systems</li>
+                            </ul>
+                        </div>
+                    </label>
+                    
+                    <label class="os-option">
+                        <input type="radio" name="os" value="ubuntu">
+                        <div class="os-card">
+                            <h4>Ubuntu 24.04 LTS</h4>
+                            <p>Enterprise-grade with 5-year support and enhanced security</p>
+                            <ul class="os-features">
+                                <li>Package Manager: APT (Ubuntu + Debian packages)</li>
+                                <li>Security: AppArmor + Ubuntu Security Team</li>
+                                <li>Support: 5-year LTS with regular updates</li>
+                                <li>Best for: Enterprise, education, long-term projects</li>
+                            </ul>
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="btn-confirm-os">
+                        Continue with Selected OS
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Workstation Status Display (CMU 13.1, 13.2, 6.4) -->
+            <div id="workstation-status-display">
+                {% set status_title = "Workstation Status" %}
+                {% set status_value = "Checking..." %}
+                {% set status_type = "info" %}
+                {% set refresh_url = "/api/workstation/status" %}
+                {% set last_updated = moment() %}
+                {% set actions = [] %}
+                {% include 'components/status-display.html' %}
+            </div>
+            
+            <!-- Action Buttons (Context-aware) -->
+            <div class="card" id="workstation-actions-card">
+                <div class="button-group" id="workstation-actions">
+                    <button type="button" class="btn btn-primary" id="btn-create-workstation" style="display: none;">
+                        Create Workstation
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-start-workstation" disabled>
+                        Start Workstation
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-stop-workstation" disabled>
+                        Stop Workstation
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btn-destroy-workstation" disabled>
+                        Destroy Workstation
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Workstation management with OS selection
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Workstation page loaded');
+    
+    // Elements
+    const osSelectionCard = document.getElementById('os-selection-card');
+    const workstationStatusCard = document.getElementById('workstation-status-card');
+    const currentOsDisplay = document.getElementById('current-os-display');
+    const currentOsName = document.getElementById('current-os-name');
+    const workstationStatus = document.getElementById('workstation-status');
+    
+    const btnConfirmOs = document.getElementById('btn-confirm-os');
+    const btnCreateWorkstation = document.getElementById('btn-create-workstation');
+    const btnStartWorkstation = document.getElementById('btn-start-workstation');
+    const btnStopWorkstation = document.getElementById('btn-stop-workstation');
+    const btnDestroyWorkstation = document.getElementById('btn-destroy-workstation');
+    
+    // State
+    let workstationInstalled = false;
+    let currentOs = null;
+    let selectedOs = 'fedora'; // Default
+    
+    // Initialize
+    loadCurrentOs();
+    checkWorkstationStatus();
+    
+    // Event Listeners
+    document.querySelectorAll('input[name="os"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            selectedOs = this.value;
+            console.log('OS selected:', selectedOs);
+        });
+    });
+    
+    btnConfirmOs.addEventListener('click', confirmOsSelection);
+    btnCreateWorkstation.addEventListener('click', createWorkstation);
+    
+    // Functions
+    async function loadCurrentOs() {
+        try {
+            const response = await fetch('/api/os/current');
+            const data = await response.json();
+            
+            if (data.success) {
+                currentOs = data.current_os;
+                console.log('Current OS:', currentOs);
+                
+                if (currentOs) {
+                    // Set radio button to current OS
+                    const radio = document.querySelector(`input[name="os"][value="${currentOs}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                        selectedOs = currentOs;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load current OS:', error);
+        }
+    }
+    
+    async function checkWorkstationStatus() {
+        try {
+            const response = await fetch('/api/status');
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.message);
+            }
+            
+            workstationInstalled = data.workstation_installed;
+            
+            console.log('Workstation status:', {
+                installed: workstationInstalled,
+                running: data.workstation_running
+            });
+            
+            updateUI();
+        } catch (error) {
+            console.error('Failed to check workstation status:', error);
+            workstationStatus.textContent = 'Error checking status: ' + error.message;
+        }
+    }
+    
+    function updateUI() {
+        if (workstationInstalled) {
+            // Workstation exists - hide OS selection, show status
+            osSelectionCard.style.display = 'none';
+            btnCreateWorkstation.style.display = 'none';
+            
+            if (currentOs) {
+                currentOsDisplay.style.display = 'block';
+                const osInfo = getOsDisplayName(currentOs);
+                currentOsName.textContent = osInfo;
+            }
+            
+            workstationStatus.textContent = 'Workstation is running';
+            btnStartWorkstation.disabled = true;
+            btnStopWorkstation.disabled = false;
+            btnDestroyWorkstation.disabled = false;
+        } else {
+            // No workstation - show OS selection
+            osSelectionCard.style.display = 'block';
+            btnCreateWorkstation.style.display = 'none'; // Hidden until OS confirmed
+            currentOsDisplay.style.display = 'none';
+            
+            workstationStatus.textContent = 'No workstation installed';
+            btnStartWorkstation.disabled = true;
+            btnStopWorkstation.disabled = true;
+            btnDestroyWorkstation.disabled = true;
+        }
+    }
+    
+    function getOsDisplayName(osKey) {
+        const osNames = {
+            'fedora': 'Fedora 43',
+            'debian': 'Debian 13 (Trixie)',
+            'ubuntu': 'Ubuntu 24.04 LTS'
+        };
+        return osNames[osKey] || osKey;
+    }
+    
+    async function confirmOsSelection() {
+        try {
+            btnConfirmOs.disabled = true;
+            btnConfirmOs.textContent = 'Configuring...';
+            
+            // Set OS in ahab.conf
+            const response = await fetch('/api/os/set', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ os: selectedOs })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('OS configured:', selectedOs);
+                currentOs = selectedOs;
+                
+                // Hide OS selection, show create button
+                osSelectionCard.style.display = 'none';
+                btnCreateWorkstation.style.display = 'inline-block';
+                
+                // Show success message
+                workstationStatus.innerHTML = `
+                    <div class="info-box">
+                        <strong>Ready to install:</strong> ${getOsDisplayName(selectedOs)}
+                    </div>
+                `;
+            } else {
+                throw new Error(data.message || 'Failed to configure OS');
+            }
+        } catch (error) {
+            console.error('Failed to confirm OS:', error);
+            alert('Failed to configure OS: ' + error.message);
+            btnConfirmOs.disabled = false;
+            btnConfirmOs.textContent = 'Continue with Selected OS';
+        }
+    }
+    
+    async function createWorkstation() {
+        try {
+            btnCreateWorkstation.disabled = true;
+            btnCreateWorkstation.textContent = 'Creating...';
+            
+            workstationStatus.textContent = 'Creating workstation with ' + getOsDisplayName(currentOs) + '...';
+            
+            console.log('Creating workstation with OS:', currentOs);
+            
+            // Execute make install command
+            const response = await fetch('/api/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ command: 'install' })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                workstationStatus.innerHTML = `
+                    <div class="info-box">
+                        <strong>✅ Workstation created successfully!</strong><br>
+                        OS: ${getOsDisplayName(currentOs)}<br>
+                        Duration: ${Math.round(data.duration)}s
+                    </div>
+                `;
+                
+                // Update UI state
+                workstationInstalled = true;
+                updateUI();
+                
+                console.log('Workstation created successfully');
+            } else {
+                throw new Error(data.message || 'Command failed');
+            }
+            
+        } catch (error) {
+            console.error('Failed to create workstation:', error);
+            workstationStatus.innerHTML = `
+                <div class="warning-list">
+                    <li>Failed to create workstation: ${error.message}</li>
+                </div>
+            `;
+            btnCreateWorkstation.disabled = false;
+            btnCreateWorkstation.textContent = 'Create Workstation';
+        }
+    }
+});
+</script>
+{% endblock %}

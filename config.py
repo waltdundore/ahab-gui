@@ -1,121 +1,147 @@
-"""Configuration management for Ahab GUI.
-
-Reads configuration from environment variables and ahab.conf file.
-Provides defaults for all settings.
 """
-
+Configuration module for Ahab GUI.
+Loads and validates all configuration with secure defaults.
+"""
 import os
+import logging
 from pathlib import Path
-from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
+
+
+class ConfigurationError(Exception):
+    """Raised when configuration validation fails."""
+    pass
 
 
 class Config:
-    """Application configuration."""
+    """Application configuration with validation and secure defaults."""
     
-    # Load environment variables from .env file if it exists
-    env_path = Path('.') / '.env'
-    if env_path.exists():
-        load_dotenv(env_path)
+    def __init__(self):
+        """Initialize configuration and validate all values."""
+        self._load_configuration()
+        self._validate_configuration()
+        logger.info("Configuration loaded successfully", extra={
+            'ahab_path': self.AHAB_PATH,
+            'host': self.WUI_HOST,
+            'port': self.WUI_PORT,
+            'debug': self.DEBUG
+        })
     
-    # Try to load from ahab.conf in parent directory
-    ahab_conf_path = Path('..') / 'ahab.conf'
-    if ahab_conf_path.exists():
-        load_dotenv(ahab_conf_path)
-    
-    # Server configuration
-    PORT = int(os.getenv('WUI_PORT', '5000'))
-    HOST = os.getenv('WUI_HOST', '127.0.0.1')
-    DEBUG = os.getenv('WUI_DEBUG', 'False').lower() in ('true', '1', 'yes')
-    
-    # Ahab paths
-    AHAB_PATH = os.getenv('AHAB_PATH', str(Path('..') / 'ahab'))
-    
-    # Command execution
-    COMMAND_TIMEOUT = int(os.getenv('COMMAND_TIMEOUT', '3600'))  # 1 hour default
-    
-    # Security
-    SECRET_KEY = os.getenv('SECRET_KEY', os.urandom(24).hex())
-    WUI_ENABLE_AUTH = os.getenv('WUI_ENABLE_AUTH', 'false').lower() in ('true', '1', 'yes')
-    WUI_USERNAME = os.getenv('WUI_USERNAME', 'admin')
-    WUI_PASSWORD = os.getenv('WUI_PASSWORD', 'changeme')
-    
-    # Session configuration
-    SESSION_TYPE = 'filesystem'
-    SESSION_FILE_DIR = Path('.') / 'sessions'
-    PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
-    
-    # WebSocket configuration
-    SOCKETIO_ASYNC_MODE = 'eventlet'
-    
-    # Allowed make commands (whitelist for security)
-    ALLOWED_COMMANDS = [
-        'help',
-        'install',
-        'verify-install',
-        'test',
-        'test-unit',
-        'test-integration',
-        'test-e2e',
-        'test-nasa',
-        'ssh',
-        'clean',
-        'deploy',
-        'audit',
-    ]
-    
-    @classmethod
-    def validate(cls):
-        """Validate configuration settings.
+    def _load_configuration(self):
+        """Load configuration from environment variables with secure defaults."""
+        # Flask configuration
+        self.SECRET_KEY = os.environ.get('SECRET_KEY')
+        if not self.SECRET_KEY:
+            raise ConfigurationError("SECRET_KEY environment variable must be set")
         
-        Returns:
-            tuple: (is_valid, error_message)
-        """
-        errors = []
+        # Ahab path configuration
+        ahab_path = os.environ.get('AHAB_PATH', '../ahab')
+        self.AHAB_PATH = str(Path(ahab_path).resolve())
         
-        # Validate port
-        if not (1 <= cls.PORT <= 65535):
-            errors.append(f"Invalid port: {cls.PORT}. Must be between 1 and 65535.")
+        # Server configuration
+        self.WUI_HOST = os.environ.get('WUI_HOST', '127.0.0.1')
+        self.WUI_PORT = int(os.environ.get('WUI_PORT', '5000'))
+        
+        # Environment
+        flask_env = os.environ.get('FLASK_ENV', 'production')
+        self.DEBUG = flask_env == 'development'
+        
+        # Security configuration
+        self.SESSION_COOKIE_HTTPONLY = True
+        self.SESSION_COOKIE_SECURE = not self.DEBUG  # Only secure in production
+        self.SESSION_COOKIE_SAMESITE = 'Lax'
+        self.WTF_CSRF_ENABLED = True
+        self.WTF_CSRF_TIME_LIMIT = None  # No time limit on CSRF tokens
+        
+        # Session configuration
+        self.SESSION_TYPE = 'filesystem'
+        self.SESSION_PERMANENT = False
+        self.PERMANENT_SESSION_LIFETIME = 1800  # 30 minutes
+        self.SESSION_FILE_DIR = Path('/tmp/ahab-gui-sessions')
+        self.SESSION_FILE_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Rate limiting
+        self.RATE_LIMIT = int(os.environ.get('RATE_LIMIT', '10'))
+        self.RATE_LIMIT_WINDOW = 60  # 1 minute
+        
+        # Command execution
+        self.COMMAND_TIMEOUT = int(os.environ.get('COMMAND_TIMEOUT', '300'))
+        
+        # Allowed make commands (whitelist)
+        self.ALLOWED_COMMANDS = [
+            'install', 
+            'test', 
+            'status', 
+            'clean', 
+            'ssh',
+            'network-switches',
+            'network-switches-version',
+            'network-switches-test'
+        ]
+    
+    def _validate_configuration(self):
+        """Validate all configuration values."""
+        # Validate SECRET_KEY
+        if len(self.SECRET_KEY) < 32:
+            raise ConfigurationError("SECRET_KEY must be at least 32 characters")
         
         # Validate Ahab path
-        ahab_path = Path(cls.AHAB_PATH)
+        ahab_path = Path(self.AHAB_PATH)
         if not ahab_path.exists():
-            errors.append(f"Ahab path does not exist: {cls.AHAB_PATH}")
-        elif not (ahab_path / 'Makefile').exists():
-            errors.append(f"Makefile not found in Ahab path: {cls.AHAB_PATH}")
+            raise ConfigurationError(f"Ahab directory does not exist: {self.AHAB_PATH}")
+        
+        if not ahab_path.is_dir():
+            raise ConfigurationError(f"Ahab path is not a directory: {self.AHAB_PATH}")
+        
+        makefile_path = ahab_path / 'Makefile'
+        if not makefile_path.exists():
+            raise ConfigurationError(f"Makefile not found in Ahab directory: {self.AHAB_PATH}")
+        
+        # Validate port
+        if not (1 <= self.WUI_PORT <= 65535):
+            raise ConfigurationError(f"Invalid port number: {self.WUI_PORT}")
+        
+        # Validate rate limit
+        if self.RATE_LIMIT < 1:
+            raise ConfigurationError(f"Rate limit must be at least 1: {self.RATE_LIMIT}")
         
         # Validate timeout
-        if cls.COMMAND_TIMEOUT < 1:
-            errors.append(f"Invalid command timeout: {cls.COMMAND_TIMEOUT}. Must be positive.")
+        if self.COMMAND_TIMEOUT < 1:
+            raise ConfigurationError(f"Command timeout must be at least 1 second: {self.COMMAND_TIMEOUT}")
         
-        # Validate authentication settings
-        if cls.WUI_ENABLE_AUTH:
-            if not cls.WUI_USERNAME or not cls.WUI_PASSWORD:
-                errors.append("Authentication enabled but username or password not set.")
-            if cls.WUI_PASSWORD == 'changeme':
-                errors.append("WARNING: Using default password 'changeme'. Please change it!")
-        
-        if errors:
-            return False, '\n'.join(errors)
-        
-        return True, None
+        # Validate debug mode in production
+        if not self.DEBUG and self.SESSION_COOKIE_SECURE is False:
+            logger.warning("Running in production mode but SESSION_COOKIE_SECURE is False")
     
-    @classmethod
-    def get_info(cls):
-        """Get configuration information for display.
-        
-        Returns:
-            dict: Configuration information
-        """
+    def get_summary(self):
+        """Get configuration summary for logging (without sensitive data)."""
         return {
-            'host': cls.HOST,
-            'port': cls.PORT,
-            'debug': cls.DEBUG,
-            'ahab_path': cls.AHAB_PATH,
-            'command_timeout': cls.COMMAND_TIMEOUT,
-            'auth_enabled': cls.WUI_ENABLE_AUTH,
-            'allowed_commands': cls.ALLOWED_COMMANDS,
+            'ahab_path': self.AHAB_PATH,
+            'host': self.WUI_HOST,
+            'port': self.WUI_PORT,
+            'debug': self.DEBUG,
+            'rate_limit': self.RATE_LIMIT,
+            'command_timeout': self.COMMAND_TIMEOUT,
+            'csrf_enabled': self.WTF_CSRF_ENABLED,
+            'session_timeout': self.PERMANENT_SESSION_LIFETIME
         }
+    
+    def get_info(self):
+        """Get configuration info (alias for get_summary for backwards compatibility)."""
+        info = self.get_summary()
+        info['allowed_commands'] = self.ALLOWED_COMMANDS
+        return info
 
 
-# Create session directory if it doesn't exist
-Config.SESSION_FILE_DIR.mkdir(exist_ok=True)
+def create_config():
+    """Factory function to create and validate configuration."""
+    try:
+        config = Config()
+        return config
+    except ConfigurationError as e:
+        logger.error(f"Configuration validation failed: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error loading configuration: {e}")
+        raise ConfigurationError(f"Failed to load configuration: {e}")

@@ -1,0 +1,4 @@
+# file: /workspace/lib/validators.py
+# hypothesis_version: 6.148.7
+
+[253, '.', '..', '[.!?]+(?:\\s|$)', 'activate', 'add', 'alert', 'approve', 'badge', 'build', 'button', 'can', 'cancel', 'check', 'clear', 'close', 'compile', 'configure', 'confirm', 'copy', 'create', 'deactivate', 'delete', 'deploy', 'destroy', 'disable', 'download', 'edit', 'enable', 'ensure', 'execute', 'export', 'filter', 'for', 'graphic', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hidden', 'html.parser', 'i', 'icon', 'id', 'image', 'img', 'import', 'indicator', 'input', 'install', 'instead', 'label', 'make sure', 'move', 'open', 'photo', 'picture', 'please', 'refresh', 'reject', 'reload', 'remove', 'rename', 'reset', 'restart', 'run', 'save', 'search', 'select', 'send', 'should', 'solution', 'sort', 'start', 'status', 'stop', 'submit', 'svg', 'test', 'text', 'textarea', 'to fix', 'try', 'type', 'update', 'upload', 'use', 'validate', 'verify', 'view']

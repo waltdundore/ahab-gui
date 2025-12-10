@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Tests - Ahab GUI{% endblock %}
+
+{% block content %}
+{% include 'components/page-header.html' %}
+
+<main id="main-content" class="main-content">
+    <div class="container">
+        <section class="content-section">
+            <h2>Tests</h2>
+            <p>Run tests to verify your workstation configuration.</p>
+            
+            <div class="card">
+                <h3>Available Tests</h3>
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="btn-run-tests" disabled>
+                        Run All Tests
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-run-workstation-test" disabled>
+                        Test Workstation
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-run-service-tests" disabled>
+                        Test Services
+                    </button>
+                </div>
+                
+                <div id="test-results" class="test-results" style="display: none;">
+                    <h4>Test Results</h4>
+                    <pre id="test-output"></pre>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

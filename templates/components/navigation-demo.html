@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Components Demo</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/utilities.css">
+    <style>
+        body {
+            font-family: var(--font-family-base);
+            margin: 0;
+            padding: 0;
+            background-color: var(--gray-50);
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-8);
+        }
+        .demo-section {
+            background: white;
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-base);
+        }
+        .demo-section h2 {
+            margin-top: 0;
+            color: var(--ahab-navy);
+            border-bottom: 2px solid var(--gray-200);
+            padding-bottom: var(--space-3);
+        }
+        .demo-description {
+            color: var(--gray-600);
+            margin-bottom: var(--space-5);
+        }
+        #main-content {
+            scroll-margin-top: var(--space-8);
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip Links Component -->
+    <div class="skip-links">
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <a href="#main-nav" class="skip-link">Skip to navigation</a>
+        <a href="#breadcrumbs" class="skip-link">Skip to breadcrumbs</a>
+    </div>
+
+    <!-- Main Navigation Component -->
+    <nav id="main-nav" class="main-nav" role="navigation" aria-label="Main">
+        <ul class="nav-list">
+            <li class="nav-item current">
+                <a href="#" class="nav-link active" aria-current="page" data-icon="home">
+                    <span class="nav-icon" aria-hidden="true">🏠</span>
+                    <span class="nav-label">Home</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-icon="server">
+                    <span class="nav-icon" aria-hidden="true">🖥️</span>
+                    <span class="nav-label">Workstation</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-icon="grid">
+                    <span class="nav-icon" aria-hidden="true">📦</span>
+                    <span class="nav-label">Services</span>
+                    <span class="nav-badge" aria-label="3 notifications">3</span>
+                </a>
+                <!-- Nested submenu -->
+                <ul class="nav-submenu">
+                    <li class="nav-subitem">
+                        <a href="#" class="nav-sublink">Apache</a>
+                    </li>
+                    <li class="nav-subitem current">
+                        <a href="#" class="nav-sublink active" aria-current="page">MySQL</a>
+                    </li>
+                    <li class="nav-subitem">
+                        <a href="#" class="nav-sublink">PHP</a>
+                    </li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-icon="help">
+                    <span class="nav-icon" aria-hidden="true">❓</span>
+                    <span class="nav-label">Help</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Breadcrumbs Component -->
+    <nav id="breadcrumbs" aria-label="Breadcrumb" class="breadcrumb-nav" style="max-width: 1200px; margin: 0 auto; padding: 0 var(--space-8);">
+        <ol class="breadcrumbs">
+            <li class="breadcrumb-item">
+                <a href="#">Home</a>
+                <span class="breadcrumb-separator" aria-hidden="true">&gt;</span>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="#">Services</a>
+                <span class="breadcrumb-separator" aria-hidden="true">&gt;</span>
+            </li>
+            <li class="breadcrumb-item current">
+                <span aria-current="page">MySQL Configuration</span>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-content" class="demo-container">
+        <h1>Navigation Components Demo</h1>
+        <p class="demo-description">
+            This page demonstrates the three navigation components: Skip Links, Main Navigation, and Breadcrumbs.
+            All components follow Web Standards and are fully accessible.
+        </p>
+
+        <!-- Skip Links Demo -->
+        <section class="demo-section">
+            <h2>1. Skip Links Component</h2>
+            <p class="demo-description">
+                Skip links allow keyboard users to jump directly to main content areas.
+                Press <kbd>Tab</kbd> to see them appear at the top of the page.
+            </p>
+            <div style="background: var(--gray-100); padding: var(--space-4); border-radius: var(--radius-base);">
+                <strong>Features:</strong>
+                <ul>
+                    <li>✅ Hidden until focused (keyboard navigation)</li>
+                    <li>✅ Jump to main content, navigation, or breadcrumbs</li>
+                    <li>✅ High contrast for visibility</li>
+                    <li>✅ Proper focus indicators</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Main Navigation Demo -->
+        <section class="demo-section">
+            <h2>2. Main Navigation Component</h2>
+            <p class="demo-description">
+                Context-aware navigation menu with progressive disclosure.
+                Only shows items that are available in the current context.
+            </p>
+            <div style="background: var(--gray-100); padding: var(--space-4); border-radius: var(--radius-base);">
+                <strong>Features:</strong>
+                <ul>
+                    <li>✅ Current page indication with <code>aria-current="page"</code></li>
+                    <li>✅ Icon support for visual clarity</li>
+                    <li>✅ Badge support for notifications</li>
+                    <li>✅ Nested submenu support</li>
+                    <li>✅ Minimum 44x44px touch targets</li>
+                    <li>✅ Keyboard accessible (Tab, Enter, Space)</li>
+                    <li>✅ Mobile responsive (stacks vertically)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Breadcrumbs Demo -->
+        <section class="demo-section">
+            <h2>3. Breadcrumbs Component</h2>
+            <p class="demo-description">
+                Shows the user's location in the information hierarchy.
+                Helps users understand where they are and navigate back.
+            </p>
+            <div style="background: var(--gray-100); padding: var(--space-4); border-radius: var(--radius-base);">
+                <strong>Features:</strong>
+                <ul>
+                    <li>✅ Current page marked with <code>aria-current="page"</code></li>
+                    <li>✅ Separators are <code>aria-hidden</code> (not announced to screen readers)</li>
+                    <li>✅ Proper semantic HTML with <code>&lt;nav&gt;</code> and <code>&lt;ol&gt;</code></li>
+                    <li>✅ Keyboard accessible links</li>
+                    <li>✅ Responsive (smaller text on mobile)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Accessibility Testing -->
+        <section class="demo-section">
+            <h2>Accessibility Testing</h2>
+            <p class="demo-description">
+                Test these components with keyboard and screen readers:
+            </p>
+            <div style="background: var(--gray-100); padding: var(--space-4); border-radius: var(--radius-base);">
+                <strong>Keyboard Testing:</strong>
+                <ol>
+                    <li>Press <kbd>Tab</kbd> to see skip links appear</li>
+                    <li>Press <kbd>Enter</kbd> on a skip link to jump to that section</li>
+                    <li>Press <kbd>Tab</kbd> through navigation items</li>
+                    <li>Press <kbd>Enter</kbd> or <kbd>Space</kbd> to activate links</li>
+                    <li>Hover over "Services" to see submenu (or use keyboard)</li>
+                </ol>
+                <br>
+                <strong>Screen Reader Testing:</strong>
+                <ul>
+                    <li>Navigation is announced as "Main navigation"</li>
+                    <li>Current page is announced as "current page"</li>
+                    <li>Breadcrumbs are announced as "Breadcrumb navigation"</li>
+                    <li>Separators are not announced (aria-hidden)</li>
+                    <li>Badge count is announced descriptively</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Usage Examples -->
+        <section class="demo-section">
+            <h2>Usage in Templates</h2>
+            <p class="demo-description">
+                How to use these components in your Jinja2 templates:
+            </p>
+            <pre style="background: var(--gray-900); color: var(--gray-100); padding: var(--space-4); border-radius: var(--radius-base); overflow-x: auto;"><code>{# Skip Links #}
+{% include 'components/skip-links.html' %}
+
+{# Breadcrumbs #}
+{% set breadcrumbs = [
+    {'label': 'Home', 'url': '/', 'is_current': False},
+    {'label': 'Services', 'url': '/services', 'is_current': False},
+    {'label': 'Apache', 'url': '/services/apache', 'is_current': True}
+] %}
+{% include 'components/breadcrumbs.html' %}
+
+{# Main Navigation #}
+{% set nav_items = [
+    {'label': 'Home', 'url': '/', 'is_current': True, 'is_available': True, 'icon': 'home'},
+    {'label': 'Workstation', 'url': '/workstation', 'is_current': False, 'is_available': True, 'icon': 'server'},
+    {'label': 'Services', 'url': '/services', 'is_current': False, 'is_available': True, 'icon': 'grid', 'badge': '3'}
+] %}
+{% include 'components/navigation.html' %}</code></pre>
+        </section>
+    </main>
+
+    <footer style="background: var(--gray-900); color: white; padding: var(--space-6); text-align: center; margin-top: var(--space-10);">
+        <p>Ahab GUI - Navigation Components Demo</p>
+        <p style="font-size: var(--font-size-sm); color: var(--gray-400);">
+            Following Web Standards for accessibility and usability
+        </p>
+    </footer>
+</body>
+</html>

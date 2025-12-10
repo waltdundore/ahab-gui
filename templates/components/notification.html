@@ -1,0 +1,459 @@
+{#
+  Notification Component
+  
+  Success/error/warning/info messages for user feedback.
+  Provides clear, accessible feedback for operations.
+  
+  Validates:
+  - Requirements 2.4 (Plain language error messages)
+  - Requirements 3.2 (Color-independent indicators)
+  - Requirements 3.5 (Dynamic content announcements)
+  - Requirements 9.4 (Operation success confirmation)
+  - Requirements 9.5 (Network error recovery)
+  - Requirements 12.5 (Undo availability)
+  
+  Usage:
+    {% include 'components/notification.html' with context %}
+  
+  Required context:
+    - notification_message: str - Message to display
+    
+  Optional context:
+    - notification_type: str - 'success', 'error', 'warning', 'info' (default: 'info')
+    - notification_title: str - Optional title
+    - dismissible: bool - Can be dismissed (default: True)
+    - auto_dismiss: int - Auto-dismiss after N seconds (0 = no auto-dismiss)
+    - actions: List[Action] - Optional action buttons (e.g., Retry, Undo)
+    - show_icon: bool - Show type icon (default: True)
+#}
+
+{% set notification_type = notification_type | default('info') %}
+{% set dismissible = dismissible if dismissible is defined else True %}
+{% set show_icon = show_icon if show_icon is defined else True %}
+{% set notification_classes = ['notification', 'notification-' ~ notification_type] %}
+
+<div class="{{ notification_classes | join(' ') }}" 
+     role="alert" 
+     aria-live="polite" 
+     aria-atomic="true"
+     {% if auto_dismiss %}data-auto-dismiss="{{ auto_dismiss }}"{% endif %}>
+  
+  {# Icon (WEB 3.2 - Color-independent indicator) #}
+  {% if show_icon %}
+  <div class="notification-icon" aria-hidden="true">
+    {% if notification_type == 'success' %}
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    {% elif notification_type == 'error' %}
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    {% elif notification_type == 'warning' %}
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    {% else %}
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="16" x2="12" y2="12"/>
+      <line x1="12" y1="8" x2="12.01" y2="8"/>
+    </svg>
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  {# Content #}
+  <div class="notification-content">
+    {% if notification_title %}
+    <h4 class="notification-title">{{ notification_title }}</h4>
+    {% endif %}
+    
+    <p class="notification-message">{{ notification_message }}</p>
+    
+    {# Action Buttons (WEB 9.5, 12.5) #}
+    {% if actions and actions | length > 0 %}
+    <div class="notification-actions">
+      {% for action in actions %}
+      <button type="button" 
+              class="btn btn-sm notification-action-btn"
+              onclick="{{ action.onclick }}"
+              {% if action.aria_label %}
+              aria-label="{{ action.aria_label }}"
+              {% endif %}>
+        {% if action.icon %}
+        <i class="icon-{{ action.icon }}" aria-hidden="true"></i>
+        {% endif %}
+        {{ action.label }}
+      </button>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  
+  {# Dismiss Button (WEB 3.1) #}
+  {% if dismissible %}
+  <button type="button" 
+          class="notification-dismiss" 
+          aria-label="Dismiss notification"
+          onclick="this.closest('.notification').remove()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+  {% endif %}
+</div>
+
+<style>
+/* Notification Container */
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-4, 1rem);
+  margin-bottom: var(--space-3, 0.75rem);
+  border-radius: var(--radius-base, 6px);
+  border-left: 4px solid;
+  background: white;
+  box-shadow: var(--shadow-md);
+  animation: slideIn var(--duration-base, 200ms) var(--ease-out);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Notification Types (WEB 3.2) */
+.notification-success {
+  border-left-color: var(--success, #28a745);
+  background: #f0fff4;
+}
+
+.notification-error {
+  border-left-color: var(--danger, #dc3545);
+  background: #fff5f5;
+}
+
+.notification-warning {
+  border-left-color: var(--warning, #ffc107);
+  background: #fffbf0;
+}
+
+.notification-info {
+  border-left-color: var(--info, #17a2b8);
+  background: #f0f9ff;
+}
+
+/* Notification Icon */
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.notification-success .notification-icon {
+  background: #d4edda;
+  color: var(--success, #28a745);
+}
+
+.notification-error .notification-icon {
+  background: #f8d7da;
+  color: var(--danger, #dc3545);
+}
+
+.notification-warning .notification-icon {
+  background: #fff3cd;
+  color: var(--warning, #ffc107);
+}
+
+.notification-info .notification-icon {
+  background: #d1ecf1;
+  color: var(--info, #17a2b8);
+}
+
+/* Notification Content */
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  margin: 0 0 var(--space-1, 0.25rem) 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--gray-900, #212529);
+  line-height: 1.4;
+}
+
+.notification-message {
+  margin: 0;
+  color: var(--gray-700, #495057);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Notification Actions (WEB 9.5, 12.5) */
+.notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin-top: var(--space-3, 0.75rem);
+}
+
+.notification-action-btn {
+  padding: var(--space-1, 0.25rem) var(--space-3, 0.75rem);
+  background: white;
+  color: var(--ahab-blue, #0066cc);
+  border: 1px solid var(--ahab-blue, #0066cc);
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast, 150ms);
+}
+
+.notification-action-btn:hover {
+  background: var(--ahab-blue, #0066cc);
+  color: white;
+}
+
+.notification-action-btn:focus-visible {
+  outline: 2px solid var(--ahab-blue, #0066cc);
+  outline-offset: 2px;
+}
+
+/* Dismiss Button */
+.notification-dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--gray-500, #868e96);
+  cursor: pointer;
+  transition: all var(--duration-fast, 150ms);
+  flex-shrink: 0;
+}
+
+.notification-dismiss:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--gray-700, #495057);
+}
+
+.notification-dismiss:focus-visible {
+  outline: 2px solid var(--ahab-blue, #0066cc);
+  outline-offset: 2px;
+}
+
+/* Notification Container (for stacking) */
+.notifications-container {
+  position: fixed;
+  top: var(--space-4, 1rem);
+  right: var(--space-4, 1rem);
+  z-index: var(--z-index-tooltip, 1070);
+  max-width: 400px;
+  width: calc(100% - 2rem);
+}
+
+/* Responsive Design (WEB 8.2) */
+@media (max-width: 768px) {
+  .notification {
+    padding: var(--space-3, 0.75rem);
+  }
+  
+  .notifications-container {
+    top: var(--space-2, 0.5rem);
+    right: var(--space-2, 0.5rem);
+    left: var(--space-2, 0.5rem);
+    max-width: none;
+    width: auto;
+  }
+  
+  .notification-actions {
+    flex-direction: column;
+  }
+  
+  .notification-action-btn {
+    width: 100%;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .notification {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .notification {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--gray-300, #dee2e6);
+  }
+  
+  .notification-dismiss {
+    display: none;
+  }
+}
+</style>
+
+<script>
+// Notification functionality
+(function() {
+  'use strict';
+  
+  // Auto-dismiss notifications
+  function initAutoDismiss() {
+    document.querySelectorAll('[data-auto-dismiss]').forEach(notification => {
+      const seconds = parseInt(notification.getAttribute('data-auto-dismiss'), 10);
+      if (seconds > 0) {
+        setTimeout(() => {
+          notification.style.animation = 'slideOut 200ms ease-out';
+          setTimeout(() => {
+            notification.remove();
+          }, 200);
+        }, seconds * 1000);
+      }
+    });
+  }
+  
+  // Slide out animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-1rem);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Show notification programmatically
+  function showNotification(message, type = 'info', options = {}) {
+    const container = document.querySelector('.notifications-container') || createContainer();
+    
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.setAttribute('role', 'alert');
+    notification.setAttribute('aria-live', 'polite');
+    notification.setAttribute('aria-atomic', 'true');
+    
+    if (options.autoDismiss) {
+      notification.setAttribute('data-auto-dismiss', options.autoDismiss);
+    }
+    
+    let html = '';
+    
+    // Icon
+    if (options.showIcon !== false) {
+      html += getIconHTML(type);
+    }
+    
+    // Content
+    html += '<div class="notification-content">';
+    if (options.title) {
+      html += `<h4 class="notification-title">${options.title}</h4>`;
+    }
+    html += `<p class="notification-message">${message}</p>`;
+    
+    // Actions
+    if (options.actions && options.actions.length > 0) {
+      html += '<div class="notification-actions">';
+      options.actions.forEach(action => {
+        html += `<button type="button" class="btn btn-sm notification-action-btn" onclick="${action.onclick}">${action.label}</button>`;
+      });
+      html += '</div>';
+    }
+    
+    html += '</div>';
+    
+    // Dismiss button
+    if (options.dismissible !== false) {
+      html += `
+        <button type="button" class="notification-dismiss" aria-label="Dismiss notification" onclick="this.closest('.notification').remove()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      `;
+    }
+    
+    notification.innerHTML = html;
+    container.appendChild(notification);
+    
+    // Initialize auto-dismiss
+    initAutoDismiss();
+    
+    // Announce to screen readers
+    announceToScreenReader(`${type} notification: ${message}`);
+    
+    return notification;
+  }
+  
+  function createContainer() {
+    const container = document.createElement('div');
+    container.className = 'notifications-container';
+    document.body.appendChild(container);
+    return container;
+  }
+  
+  function getIconHTML(type) {
+    const icons = {
+      success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+      error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    };
+    return `<div class="notification-icon" aria-hidden="true">${icons[type] || icons.info}</div>`;
+  }
+  
+  function announceToScreenReader(message) {
+    const liveRegion = document.querySelector('[role="status"][aria-live]');
+    if (liveRegion) {
+      liveRegion.textContent = message;
+      setTimeout(() => {
+        liveRegion.textContent = '';
+      }, 1000);
+    }
+  }
+  
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAutoDismiss);
+  } else {
+    initAutoDismiss();
+  }
+  
+  // Expose functions globally
+  window.showNotification = showNotification;
+})();
+</script>

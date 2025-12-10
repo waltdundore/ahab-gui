@@ -1,0 +1,273 @@
+{#
+  Error Message Component
+  
+  Displays errors in plain language with recovery suggestions.
+  
+  Validates:
+  - Requirements 2.4 (Plain language error messages)
+  - Requirements 3.2 (Color-independent indicators)
+  - Requirements 12.2 (Consequence explanation)
+  - Requirements 12.3 (Error input preservation)
+  - Requirements 12.4 (Validation error highlighting)
+  
+  Usage:
+    {% include 'components/error-message.html' with context %}
+  
+  Required context:
+    - error_title: str - Error title
+    - error_message: str - Plain language error description
+    
+  Optional context:
+    - error_code: str - Technical error code (hidden by default)
+    - technical_details: str - Technical details (hidden by default)
+    - recovery_actions: List[str] - Suggested recovery steps
+    - show_technical: bool - Show technical details (default: False)
+#}
+
+{% set show_technical = show_technical | default(False) %}
+
+<div class="error-message" role="alert" aria-live="assertive">
+  {# Error Icon (WEB 3.2 - Color-independent indicator) #}
+  <div class="error-icon" aria-hidden="true">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+  </div>
+  
+  {# Error Content #}
+  <div class="error-content">
+    <h2 class="error-title">{{ error_title }}</h2>
+    
+    {# Plain Language Message (WEB 2.4) #}
+    <p class="error-message-text">{{ error_message }}</p>
+    
+    {# Recovery Actions (WEB 12.2) #}
+    {% if recovery_actions and recovery_actions | length > 0 %}
+    <div class="recovery-actions">
+      <h3>What you can do:</h3>
+      <ol class="recovery-list">
+        {% for action in recovery_actions %}
+        <li>{{ action }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
+    
+    {# Technical Details (Progressive Disclosure) #}
+    {% if technical_details or error_code %}
+    <details class="technical-details" {% if show_technical %}open{% endif %}>
+      <summary>Technical Details</summary>
+      <div class="technical-content">
+        {% if error_code %}
+        <p><strong>Error Code:</strong> <code>{{ error_code }}</code></p>
+        {% endif %}
+        {% if technical_details %}
+        <pre><code>{{ technical_details }}</code></pre>
+        {% endif %}
+      </div>
+    </details>
+    {% endif %}
+    
+    {# Action Buttons #}
+    <div class="error-actions">
+      <a href="/" class="btn btn-primary">Go to Dashboard</a>
+      <button type="button" class="btn btn-secondary" onclick="window.history.back()">Go Back</button>
+      <a href="/help" class="btn btn-secondary">Get Help</a>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Error Message Container */
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg, 1.5rem);
+  padding: var(--space-2xl, 3rem) var(--space-xl, 2rem);
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Error Icon */
+.error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: #f8d7da;
+  color: var(--danger, #dc3545);
+}
+
+/* Error Content */
+.error-content {
+  width: 100%;
+}
+
+.error-title {
+  margin: 0 0 var(--space-md, 1rem) 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900, #212529);
+  line-height: 1.2;
+}
+
+.error-message-text {
+  margin: 0 0 var(--space-lg, 1.5rem) 0;
+  font-size: 1.125rem;
+  color: var(--gray-700, #495057);
+  line-height: 1.6;
+}
+
+/* Recovery Actions (WEB 6.5) */
+.recovery-actions {
+  margin: var(--space-lg, 1.5rem) 0;
+  padding: var(--space-lg, 1.5rem);
+  background: #f0f9ff;
+  border: 1px solid #bee5eb;
+  border-radius: var(--radius-base, 6px);
+  text-align: left;
+}
+
+.recovery-actions h3 {
+  margin: 0 0 var(--space-md, 1rem) 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ahab-navy, #003d7a);
+}
+
+.recovery-list {
+  margin: 0;
+  padding-left: var(--space-lg, 1.5rem);
+  list-style: decimal;
+}
+
+.recovery-list li {
+  margin-bottom: var(--space-sm, 0.5rem);
+  color: var(--gray-700, #495057);
+  line-height: 1.6;
+}
+
+.recovery-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* Technical Details (Progressive Disclosure) */
+.technical-details {
+  margin: var(--space-lg, 1.5rem) 0;
+  padding: var(--space-md, 1rem);
+  background: var(--gray-100, #f8f9fa);
+  border: 1px solid var(--gray-300, #dee2e6);
+  border-radius: var(--radius-base, 6px);
+  text-align: left;
+}
+
+.technical-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ahab-blue, #0066cc);
+  padding: var(--space-sm, 0.5rem);
+  user-select: none;
+}
+
+.technical-details summary:hover {
+  color: var(--ahab-navy, #003d7a);
+}
+
+.technical-details summary:focus-visible {
+  outline: 2px solid var(--ahab-blue, #0066cc);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.technical-content {
+  margin-top: var(--space-md, 1rem);
+  padding-top: var(--space-md, 1rem);
+  border-top: 1px solid var(--gray-300, #dee2e6);
+}
+
+.technical-content code {
+  display: block;
+  padding: var(--space-md, 1rem);
+  background: white;
+  border: 1px solid var(--gray-300, #dee2e6);
+  border-radius: var(--radius-sm, 4px);
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: var(--gray-900, #212529);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Error Actions */
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md, 1rem);
+  justify-content: center;
+  margin-top: var(--space-xl, 2rem);
+}
+
+.error-actions .btn {
+  min-width: 140px;
+}
+
+/* Responsive Design (WEB 8.2) */
+@media (max-width: 768px) {
+  .error-message {
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  
+  .error-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+  
+  .error-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .error-title {
+    font-size: 1.5rem;
+  }
+  
+  .error-message-text {
+    font-size: 1rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .error-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Print styles */
+@media print {
+  .error-message {
+    break-inside: avoid;
+  }
+  
+  .error-icon {
+    display: none;
+  }
+  
+  .technical-details {
+    border: 1px solid black;
+  }
+  
+  .technical-details[open] summary {
+    display: none;
+  }
+}
+</style>

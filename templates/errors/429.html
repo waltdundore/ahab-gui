@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Too Many Requests - Ahab GUI{% endblock %}
+
+{% block content %}
+{# 429 Error Page - Plain Language (CMU 2.4) #}
+
+{% set error_title = error_title | default("Too Many Requests") %}
+{% set error_message = error_message | default("You've made too many requests in a short time. Please wait a moment before trying again.") %}
+{% set error_code = error_code | default("RATE_LIMIT") %}
+{% set recovery_actions = recovery_actions | default([
+  "Wait 30 seconds and try again",
+  "Avoid clicking buttons multiple times",
+  "Return to the dashboard",
+  "Contact support if you need immediate assistance"
+]) %}
+
+{% include 'components/error-message.html' %}
+
+{% endblock %}

@@ -42,8 +42,8 @@ if git describe --exact-match --tags HEAD 2>/dev/null; then
     exit 0
 fi
 
-# Check for milestone in commit message
-LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
+# Check for milestone in commit message using safe git command
+LAST_COMMIT_MSG=$(git --no-pager log -1 --pretty=%B)
 if echo "$LAST_COMMIT_MSG" | grep -qi "milestone"; then
     echo "Milestone detected: Commit message contains 'milestone'"
     exit 0

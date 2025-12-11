@@ -54,8 +54,8 @@ main() {
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     log "Current branch: $CURRENT_BRANCH"
     
-    # Check for uncommitted changes
-    if git diff --quiet && git diff --cached --quiet; then
+    # Check for uncommitted changes using safe git commands
+    if ! git --no-pager diff --quiet && ! git --no-pager diff --cached --quiet; then
         log "No changes to publish"
         exit 0
     fi

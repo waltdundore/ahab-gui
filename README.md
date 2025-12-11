@@ -19,13 +19,27 @@
 
 ## What Is This?
 
-**Ahab GUI** is a web interface for [Ahab](https://github.com/waltdundore/ahab), an infrastructure automation platform built for K-12 schools.
+**Ahab GUI** is an interactive learning tool - one of three teaching tools in the Ahab ecosystem.
+
+**Purpose**: Interactive learning and hands-on practice  
+**Audience**: Students, educators, visual learners  
+**Context**: Active learning through doing, classroom demonstrations  
 
 Instead of typing commands, you click buttons. Instead of reading documentation, the interface guides you. Perfect for:
 - 🎓 **Students** learning DevOps and infrastructure
 - 👨‍🏫 **Educators** teaching real-world IT skills
 - 🏫 **Schools** managing their own infrastructure
 - 🚀 **Anyone** who prefers visual interfaces
+
+## 🔗 Part of the Teaching Ecosystem
+
+This GUI is one of three distinct teaching tools:
+
+- **🌐 [Project Website](https://waltdundore.github.io)** - Conceptual learning and discovery
+- **📖 [Main Project](https://github.com/waltdundore/ahab)** - Technical implementation guide  
+- **🖥️ This GUI** - Interactive hands-on learning
+
+See the [Teaching Tools Overview](https://github.com/waltdundore/ahab/blob/main/TEACHING_TOOLS_OVERVIEW.md) for detailed comparisons.
 
 **Prerequisites**: [Ahab](https://github.com/waltdundore/ahab) must be installed first.
 

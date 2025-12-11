@@ -26,6 +26,7 @@ wheels/
 # Flask
 instance/
 .webassets-cache
+flask_session/
 
 # Environment
 .env
@@ -50,6 +51,12 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+.hypothesis/
 
 # Session data
 sessions/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup

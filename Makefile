@@ -2,85 +2,48 @@
 # All Python execution happens in Docker containers
 # Called from main ahab Makefile via: make ui
 
-.PHONY: help install test run stop status logs clean demo verify check-links
+# Include shared configuration and common targets
+include ../ahab/Makefile.config
+include ../ahab/Makefile.common
 
-# Python Docker command (ALWAYS run Python in Docker)
-PYTHON_DOCKER = docker run --rm -v $(PWD):/workspace -w /workspace python:3.11-slim
+.PHONY: help install test run stop status logs clean demo verify check-links publish
 
 # Get absolute path to ahab directory
 AHAB_PATH := $(shell cd .. && pwd)/ahab
 
 help:
-	@echo "Ahab GUI - Available Commands"
-	@echo ""
+	$(call HELP_HEADER,Ahab GUI)
 	@echo "  make run         - Start GUI in background (use from ahab: make ui)"
+	@echo "  make demo        - Start GUI with progressive disclosure demo guide"
 	@echo "  make stop        - Stop the GUI"
 	@echo "  make status      - Check if GUI is running"
 	@echo "  make logs        - View GUI logs"
 	@echo "  make verify      - Verify GUI is working (run after 'make run')"
-	@echo "  make demo        - Run demo with test script"
 	@echo "  make test        - Run all tests"
 	@echo "  make test-web    - Run Web compliance tests (utility library)"
 	@echo "  make check-links - Verify all links work (pre-release check)"
 	@echo "  make install     - Install dependencies (for testing)"
 	@echo "  make clean       - Clean up generated files"
+	@echo "  make publish     - Commit and push current branch"
 	@echo ""
 	@echo "Recommended: Run from ahab directory"
 	@echo "  cd ../ahab && make ui"
-	@echo ""
+	$(call HELP_FOOTER)
 
 install:
-	@echo "→ Checking Docker..."
-	@if ! docker info >/dev/null 2>&1; then \
-		echo "❌ ERROR: Docker is not running"; \
-		echo "Please start Docker Desktop and try again"; \
-		exit 1; \
-	fi
-	@echo "→ Installing dependencies in Docker..."
+	$(call SHOW_COMMAND,pip install -r requirements.txt,Install Python dependencies in Docker container)
+	$(call CHECK_DOCKER)
 	@$(PYTHON_DOCKER) sh -c "pip install -q --upgrade pip && pip install -q -r requirements.txt"
 	@echo "✓ Dependencies installed"
 
 test: check-links
-	@echo "=========================================="
-	@echo "Running Ahab GUI Tests"
-	@echo "=========================================="
-	@echo ""
-	@echo "→ Checking Docker..."
-	@if ! docker info >/dev/null 2>&1; then \
-		echo ""; \
-		echo "❌ ERROR: Docker is not running"; \
-		echo "Please start Docker Desktop and try again"; \
-		echo ""; \
-		exit 1; \
-	fi
-	@echo "→ Running tests in Docker..."
-	@docker run --rm \
-		-v $(PWD):/workspace \
-		-v $(shell cd .. && pwd):/project:ro \
-		-w /workspace \
-		-e SECRET_KEY="test-secret-key-minimum-32-characters-long-for-testing" \
-		-e AHAB_PATH="/project/ahab" \
-		-e WUI_HOST="127.0.0.1" \
-		-e WUI_PORT="5000" \
-		-e DEBUG="true" \
-		python:3.11-slim \
-		sh -c "pip install -q -r requirements.txt && pytest tests/ -v --tb=short"
-	@echo ""
+	$(call SHOW_STATUS,Running Ahab GUI Tests)
+	$(call RUN_PYTHON_TESTS,tests/)
 	@echo "✅ All tests passed"
 
 test-web:
-	@echo "=========================================="
-	@echo "Running Web Compliance Tests"
-	@echo "=========================================="
-	@echo ""
-	@echo "→ Checking Docker..."
-	@if ! docker info >/dev/null 2>&1; then \
-		echo ""; \
-		echo "❌ ERROR: Docker is not running"; \
-		echo "Please start Docker Desktop and try again"; \
-		echo ""; \
-		exit 1; \
-	fi
+	$(call SHOW_SECTION,Running Web Compliance Tests)
+	$(call CHECK_DOCKER)
 	@echo "→ Running Web compliance tests in Docker..."
 	@docker run --rm \
 		-v $(PWD):/workspace \
@@ -91,24 +54,7 @@ test-web:
 	@echo "✅ Web compliance tests passed"
 
 run:
-	@echo "=========================================="
-	@echo "Starting Ahab GUI"
-	@echo "=========================================="
-	@echo ""
-	@echo "→ Checking Docker..."
-	@if ! docker info >/dev/null 2>&1; then \
-		echo ""; \
-		echo "❌ ERROR: Docker is not running"; \
-		echo ""; \
-		echo "Please start Docker Desktop:"; \
-		echo "  • macOS: Open Docker Desktop from Applications"; \
-		echo "  • Or run: open -a Docker"; \
-		echo ""; \
-		echo "Then try again: make run"; \
-		echo ""; \
-		exit 1; \
-	fi
-	@echo "✓ Docker is running"
+	$(call CHECK_DOCKER)
 	@echo ""
 	@echo "Configuration:"
 	@echo "  Port: 5001"
@@ -145,32 +91,28 @@ run:
 	@echo "  4. Stop GUI: make stop"
 	@echo ""
 
-demo:
+demo: run
+	@echo ""
 	@echo "=========================================="
-	@echo "Ahab GUI - Progressive Disclosure Demo"
+	@echo "📖 Demo Guide - Progressive Disclosure"
 	@echo "=========================================="
 	@echo ""
-	@echo "→ Running validation checks..."
+	@echo "→ Running: ./test-demo.sh"
+	@echo "   Purpose: Validate progressive disclosure implementation before demo"
 	@./test-demo.sh
 	@echo ""
-	@echo "→ Starting GUI in background..."
-	@$(MAKE) run
-	@echo ""
-	@echo "=========================================="
-	@echo "📖 Demo Guide"
-	@echo "=========================================="
-	@echo ""
-	@echo "1. Open browser: http://localhost:5001"
-	@echo "2. Follow test scenarios in PROGRESSIVE_DISCLOSURE_DEMO.md"
-	@echo "3. Run 'make stop' when done"
-	@echo ""
-	@echo "Key things to test:"
-	@echo "  • Navigation changes based on state"
+	@echo "🎯 Demo Objectives:"
+	@echo "  • Navigation changes based on system state"
 	@echo "  • Breadcrumbs show current location"
 	@echo "  • Only relevant actions shown per page"
-	@echo "  • Context indicator shows system state"
+	@echo "  • Context indicator reflects workstation status"
 	@echo ""
-	@echo "Commands:"
+	@echo "📖 Test Scenarios:"
+	@echo "  1. Open browser: http://localhost:5001"
+	@echo "  2. Follow scenarios in PROGRESSIVE_DISCLOSURE_DEMO.md"
+	@echo "  3. Test different workstation states (not created, running, etc.)"
+	@echo ""
+	@echo "🔧 Demo Commands:"
 	@echo "  • View logs: make logs"
 	@echo "  • Check status: make status"
 	@echo "  • Stop GUI: make stop"
@@ -259,8 +201,18 @@ logs:
 	fi
 
 clean: stop
-	@echo "→ Cleaning up..."
-	@rm -rf __pycache__ .pytest_cache .coverage htmlcov
-	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	@find . -type f -name "*.pyc" -delete
+	$(call SHOW_COMMAND,cleanup,Remove temporary files and stop containers)
+	$(call CLEAN_PYTHON)
 	@echo "✓ Cleaned"
+
+publish:
+	@echo "=========================================="
+	@echo "Publishing Ahab GUI"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: git push origin main"
+	@echo "   Purpose: Publish GUI updates to GitHub"
+	@echo ""
+	@git push origin main
+	@echo ""
+	@echo "✅ Published to GitHub"

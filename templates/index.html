@@ -9,6 +9,11 @@
 {% set page_icon = "home" %}
 {% include 'components/page-header.html' %}
 
+{# Context Indicator - Progressive Disclosure - Validates: Requirements 16.1 #}
+<div id="context-indicator" class="context-indicator" role="status" aria-live="polite">
+    <strong>Current Context:</strong> <span id="context-text">Dashboard - System Overview</span>
+</div>
+
 {# Status Indicator Section - Validates: Requirements 6.4, 13.1 #}
 <div id="status-section" class="status-section" role="region" aria-label="System Status">
     <div class="status-cards">

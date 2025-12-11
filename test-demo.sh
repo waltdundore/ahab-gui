@@ -98,7 +98,7 @@ fi
 echo ""
 echo "📄 Checking HTML templates..."
 
-if grep -q "main-nav" templates/base.html; then
+if grep -q "components/navigation.html" templates/base.html; then
     echo "  ✅ Main navigation in template"
 else
     echo "  ❌ Main navigation missing from template"

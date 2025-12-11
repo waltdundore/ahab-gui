@@ -222,7 +222,7 @@ class CommandExecutor:
 
 
 def get_system_status(ahab_path: str) -> dict:
-    """Get current system status by checking Vagrant and services.
+    """Get current system status using make status command.
     
     Args:
         ahab_path: Path to the ahab directory
@@ -232,28 +232,58 @@ def get_system_status(ahab_path: str) -> dict:
     """
     ahab_path = Path(ahab_path)
     
-    # Check if workstation is installed (Vagrant directory exists)
-    vagrant_dir = ahab_path / '.vagrant'
-    workstation_installed = vagrant_dir.exists()
-    
-    # Check if workstation is running
+    # Use make status command (follows ahab-development.md rules)
+    workstation_installed = False
     workstation_running = False
-    if workstation_installed:
-        try:
-            result = subprocess.run(
-                ['vagrant', 'status'],
-                cwd=str(ahab_path),
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            workstation_running = 'running' in result.stdout.lower()
-        except Exception:
-            pass
+    services = []
+    
+    try:
+        result = subprocess.run(
+            ['make', 'status'],
+            cwd=str(ahab_path),
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            output = result.stdout
+            
+            # Parse make status output
+            if '✓ Workstation: Running' in output:
+                workstation_installed = True
+                workstation_running = True
+            elif '⚠ Workstation: Stopped' in output:
+                workstation_installed = True
+                workstation_running = False
+            elif '○ Workstation: Not Created' in output:
+                workstation_installed = False
+                workstation_running = False
+            
+            # Parse services from docker ps output in make status
+            lines = result.stdout.split('\n')
+            for line in lines:
+                if 'ahab_' in line and 'Up' in line:
+                    # Extract service name from docker container name
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        container_name = parts[0]
+                        if container_name.startswith('ahab_'):
+                            service_name = container_name.replace('ahab_', '')
+                            services.append({
+                                'name': service_name,
+                                'status': 'running',
+                                'container': container_name
+                            })
+        
+    except Exception as e:
+        # Fallback: check if .vagrant directory exists
+        vagrant_dir = ahab_path / '.vagrant'
+        workstation_installed = vagrant_dir.exists()
     
     return {
         'workstation_installed': workstation_installed,
         'workstation_running': workstation_running,
-        'services': [],  # Will be populated by service discovery
+        'services': services,
         'last_updated': datetime.now().isoformat()
     }

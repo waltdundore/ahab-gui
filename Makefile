@@ -69,10 +69,12 @@ help:
 	@echo "                              • Removes __pycache__ directories"
 	@echo "                              • Cleans log files and temp data"
 	@echo "                              • Resets to clean state"
-	@echo "  make publish              → Commit and push current branch"
-	@echo "                              • Runs tests first (safety check)"
-	@echo "                              • Commits with descriptive message"
-	@echo "                              • Pushes to origin remote"
+	@echo "  make publish              → Publish main branch to GitHub"
+	@echo "                              • Uses standardized git publishing"
+	@echo "                              • Handles GitHub push protection"
+	@echo "                              • Shows transparent command execution"
+	@echo "  make publish-all          → Publish all configured branches"
+	@echo "  make publish-status       → Show git publishing status"
 	@echo ""
 	@echo "💡 COMMON WORKFLOWS:"
 	@echo "  # Start GUI for development:"
@@ -273,13 +275,24 @@ clean: stop
 	@echo "✓ Cleaned"
 
 publish:
-	@echo "=========================================="
-	@echo "Publishing Ahab GUI"
-	@echo "=========================================="
-	@echo ""
-	@echo "→ Running: git push origin main"
-	@echo "   Purpose: Publish GUI updates to GitHub"
-	@echo ""
-	@git push origin main
-	@echo ""
-	@echo "✅ Published to GitHub"
+	@echo "→ Running: ./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))"
+	@echo "   Purpose: Publish branch to GitHub for collaboration and visibility"
+	@./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))
+
+publish-all:
+	@echo "→ Running: ./scripts/git-publish all"
+	@echo "   Purpose: Publish all configured branches to GitHub"
+	@./scripts/git-publish all
+
+publish-status:
+	@echo "→ Running: ./scripts/git-publish status"
+	@echo "   Purpose: Show current git publishing status and branch sync state"
+	@./scripts/git-publish status
+
+publish-sync:
+	@echo "→ Running: ./scripts/git-publish sync"
+	@echo "   Purpose: Sync main branch with remote changes before publishing"
+	@./scripts/git-publish sync
+# Handle branch names as arguments to publish command
+%:
+	@:
